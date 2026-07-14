@@ -7,36 +7,25 @@
                     defaultValue="ai-legacy-modernization-copilot"/>
     <springProperty scope="context" name="consolePattern" source="logging.pattern.console"
                     defaultValue="${CONSOLE_LOG_PATTERN}"/>
-    <springProperty scope="context" name="filePattern" source="logging.pattern.file"
-                    defaultValue="${FILE_LOG_PATTERN}"/>
-    <springProperty scope="context" name="logFile" source="logging.file.name"
-                    defaultValue="logs/application.log"/>
-    <springProperty scope="context" name="maxFileSize" source="logging.logback.rollingpolicy.max-file-size"
-                    defaultValue="10MB"/>
-    <springProperty scope="context" name="maxHistory" source="logging.logback.rollingpolicy.max-history"
-                    defaultValue="30"/>
 
+    <!--
+        Console/stdout only, deliberately. No file appender: Railway, Render and
+        Northflank containers don't guarantee a writable filesystem at any given
+        path, and Logback initializes before Spring Boot's own startup logic runs
+        - a FileAppender that can't create its target file/directory fails during
+        Logback's own bootstrap, which can crash the process before "Starting
+        AiLegacyModernizationCopilotApplication" is ever logged. All of these
+        platforms capture stdout/stderr directly, so a file appender adds risk
+        with no benefit in this deployment model.
+    -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${consolePattern}</pattern>
         </encoder>
     </appender>
 
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logFile}</file>
-        <encoder>
-            <pattern>${filePattern}</pattern>
-        </encoder>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${logFile}.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
-            <maxFileSize>${maxFileSize}</maxFileSize>
-            <maxHistory>${maxHistory}</maxHistory>
-        </rollingPolicy>
-    </appender>
-
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
     </root>
 
 </configuration>

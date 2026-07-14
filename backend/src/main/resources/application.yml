@@ -48,7 +48,9 @@ server:
     enabled: true
     min-response-size: 1024
 
-# Logging Configuration
+# Logging Configuration - console/stdout only, no file appender (see
+# logback-spring.xml for why: no cloud platform this app deploys to
+# guarantees a writable filesystem path).
 logging:
   level:
     root: INFO
@@ -57,13 +59,6 @@ logging:
     org.springframework.data.mongodb: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-  file:
-    name: logs/application.log
-  logback:
-    rollingpolicy:
-      max-file-size: 10MB
-      max-history: 30
 
 # JWT Configuration
 jwt:

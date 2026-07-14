@@ -9,9 +9,8 @@ logging:
     root: WARN
     com.ailegacy.modernization.copilot: INFO
     org.springframework.security: WARN
-  # No file appender in prod: platforms like Northflank capture stdout/stderr
-  # directly, and a hardcoded /var/log path may not be writable in a locked-down
-  # buildpack container - that would risk failing logging init at startup.
+  # Console-only logging is enforced globally in logback-spring.xml, not here -
+  # see that file for why.
 
 jwt:
   # No override here - falls back to application.yml's safe default so startup

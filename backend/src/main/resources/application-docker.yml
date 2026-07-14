@@ -8,8 +8,6 @@ logging:
   level:
     root: INFO
     com.ailegacy.modernization.copilot: DEBUG
-  file:
-    name: /var/log/ai-legacy-copilot/application.log
 
 jwt:
   secret: ${JWT_SECRET:change-this-default-secret-in-production-it-must-be-at-least-64-bytes-long-for-hs512}
