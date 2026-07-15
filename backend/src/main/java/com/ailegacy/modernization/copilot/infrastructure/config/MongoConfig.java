@@ -2,6 +2,7 @@ package com.ailegacy.modernization.copilot.infrastructure.config;
 
 import com.mongodb.ConnectionString;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.mongo.MongoClientSettingsBuilderCustomizer;
 import org.springframework.boot.autoconfigure.mongo.MongoConnectionDetails;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +11,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
 /**
  * MongoDB configuration.
@@ -46,5 +48,19 @@ public class MongoConfig {
         ConnectionString connectionString = new ConnectionString(uri);
 
         return () -> connectionString;
+    }
+
+    /**
+     * serverSelectionTimeoutMS/connectTimeoutMS/socketTimeoutMS equivalents, applied
+     * via the driver's builder rather than URI query params since MongoConnectionDetails
+     * only carries the ConnectionString itself.
+     */
+    @Bean
+    public MongoClientSettingsBuilderCustomizer mongoTimeoutCustomizer() {
+        return builder -> builder
+                .applyToClusterSettings(cluster -> cluster.serverSelectionTimeout(15, TimeUnit.SECONDS))
+                .applyToSocketSettings(socket -> socket
+                        .connectTimeout(15, TimeUnit.SECONDS)
+                        .readTimeout(15, TimeUnit.SECONDS));
     }
 }

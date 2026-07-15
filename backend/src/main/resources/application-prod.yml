@@ -8,6 +8,7 @@ logging:
     root: WARN
     com.ailegacy.modernization.copilot: INFO
     org.springframework.security: WARN
+    org.mongodb.driver: DEBUG
   # Console-only logging is enforced globally in logback-spring.xml, not here -
   # see that file for why.
 
