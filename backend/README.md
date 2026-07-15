@@ -55,8 +55,7 @@ mvn verify
 ✅ **Global Exception Handling** with standardized responses  
 ✅ **Comprehensive Logging** and audit trails  
 ✅ **File Upload Support** with validation  
-✅ **CORS Configuration** for frontend integration  
-✅ **Docker Ready** for containerized deployment
+✅ **CORS Configuration** for frontend integration
 
 ## Development Workflow
 
@@ -85,7 +84,7 @@ The project is prepared for GitHub Actions or Azure Pipelines. Configuration fil
 
 ## Deployment
 
-See `/ops/docker-compose.yml` and `/ops/k8s/` for deployment manifests.
+Deployed on Railway via its native Java/Maven buildpack (no Docker) - `system.properties` pins the JDK version, `Procfile` declares the start command, and `mvnw`/`.mvn/` provide the Maven wrapper Railway's build uses.
 
 ## License
 

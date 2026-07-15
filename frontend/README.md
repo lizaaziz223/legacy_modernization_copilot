@@ -229,12 +229,6 @@ npm install -g vercel
 vercel
 ```
 
-### Docker
-```bash
-docker build -t modernization-copilot-frontend .
-docker run -p 3000:3000 modernization-copilot-frontend
-```
-
 ### Manual Build
 ```bash
 npm run build
