@@ -60,6 +60,11 @@ export interface PerformanceAnalysisSummary extends AnalysisRecord {
   totalProjectFiles: number;
 }
 
+export interface ModuleSummary {
+  moduleName: string;
+  description: string;
+}
+
 export interface BusinessAnalysisResult extends AnalysisRecord {
   businessPurpose: string;
   mainModules: string[];
@@ -67,6 +72,7 @@ export interface BusinessAnalysisResult extends AnalysisRecord {
   coreEntities: string[];
   executiveSummary: string;
   businessSummary: string;
+  moduleSummary: ModuleSummary[];
   filesAnalyzed: number;
   totalProjectFiles: number;
 }

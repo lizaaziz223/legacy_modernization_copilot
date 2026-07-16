@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -19,27 +18,10 @@ import {
   Sparkles,
   Clock,
 } from 'lucide-react';
-import {
-  projectService,
-  businessAnalysisStatusService,
-  technologyDetectionService,
-  architectureAnalysisService,
-  securityAnalysisStatusService,
-  performanceAnalysisStatusService,
-  modernizationPlanService,
-} from '@/services';
-import type {
-  Project,
-  BusinessAnalysisResult,
-  TechnologyDetectionResult,
-  ArchitectureAnalysisResult,
-  SecurityAnalysisSummary,
-  PerformanceAnalysisSummary,
-  ModernizationPlan,
-} from '@/types';
 import { scoreAccent } from '@/components/dashboard';
 import { ScoreCard, InfoCard, RiskList, RecommendationList } from '@/components/executive-summary';
 import { Card, CardHeader, CardTitle, CardContent, Progress } from '@/components/ui';
+import { useProjectFullAnalysis } from '@/hooks';
 import {
   computeMaintainability,
   computeTechnicalDebt,
@@ -50,62 +32,10 @@ import {
   topRecommendations,
 } from '@/lib/executive-summary';
 
-type LoadState = 'loading' | 'loaded' | 'error';
-
-async function settle<T>(promise: Promise<T>): Promise<T | null> {
-  try {
-    return await promise;
-  } catch {
-    return null;
-  }
-}
-
 export default function ExecutiveSummaryPage() {
   const { id } = useParams<{ id: string }>();
-
-  const [state, setState] = useState<LoadState>('loading');
-  const [project, setProject] = useState<Project | null>(null);
-  const [business, setBusiness] = useState<BusinessAnalysisResult | null>(null);
-  const [technology, setTechnology] = useState<TechnologyDetectionResult | null>(null);
-  const [architecture, setArchitecture] = useState<ArchitectureAnalysisResult | null>(null);
-  const [security, setSecurity] = useState<SecurityAnalysisSummary | null>(null);
-  const [performance, setPerformance] = useState<PerformanceAnalysisSummary | null>(null);
-  const [plan, setPlan] = useState<ModernizationPlan | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    projectService
-      .get(id)
-      .then(async (loadedProject) => {
-        const [businessResult, technologyResult, architectureResult, securityResult, performanceResult, planResult] =
-          await Promise.all([
-            settle(businessAnalysisStatusService.get(id)),
-            settle(technologyDetectionService.get(id)),
-            settle(architectureAnalysisService.get(id)),
-            settle(securityAnalysisStatusService.get(id)),
-            settle(performanceAnalysisStatusService.get(id)),
-            settle(modernizationPlanService.get(id)),
-          ]);
-
-        if (cancelled) return;
-        setProject(loadedProject);
-        setBusiness(businessResult);
-        setTechnology(technologyResult);
-        setArchitecture(architectureResult);
-        setSecurity(securityResult);
-        setPerformance(performanceResult);
-        setPlan(planResult);
-        setState('loaded');
-      })
-      .catch(() => {
-        if (!cancelled) setState('error');
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
+  const { state, project, business, technology, architecture, security, performance, plan } =
+    useProjectFullAnalysis(id);
 
   if (state === 'loading') {
     return <p className="text-sm text-muted-foreground">Loading executive summary...</p>;

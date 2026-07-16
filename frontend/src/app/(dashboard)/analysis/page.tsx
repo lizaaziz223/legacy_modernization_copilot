@@ -2,99 +2,181 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { CheckCircle2, Circle, FolderOpen } from 'lucide-react';
+import { Cpu, GitBranch, Layers, Network, ShieldAlert, Gauge, Map, Lightbulb, Cloud, Sparkles, FolderOpen } from 'lucide-react';
 import { projectService } from '@/services';
 import { Project } from '@/types';
-import { useProjectAnalysisStages } from '@/hooks';
+import { useProjectFullAnalysis } from '@/hooks';
+import { ProjectThumbnail } from '@/components/upload';
+import { TechnologyDetectionPanel } from '@/components/detection';
+import { ArchitectureAnalysisPanel } from '@/components/architecture';
+import {
+  CollapsibleSection,
+  SecurityFindingsList,
+  PerformanceFindingsList,
+  BusinessModulesPanel,
+  DependencyGraphSection,
+  MigrationRoadmapPanel,
+  ModernizationSuggestionsList,
+  CloudRecommendationPanel,
+  ModernizationScoreCard,
+} from '@/components/analysis';
+import { computeMaintainability, computeCloudReadiness, computeOverallScore } from '@/lib/executive-summary';
+import { cn } from '@/utils';
 
 type LoadState = 'loading' | 'loaded' | 'error';
 
-const STAGE_LABELS = ['Technology', 'Business', 'Architecture', 'Security', 'Performance', 'Plan', 'Spring Boot'];
-
-function AnalysisRow({ project }: { project: Project }) {
-  const stages = useProjectAnalysisStages(project.id);
-
-  return (
-    <tr className="border-b border-border last:border-0">
-      <td className="whitespace-nowrap py-3 pr-4">
-        <Link href={`/projects/${project.id}`} className="font-medium hover:underline">
-          {project.name}
-        </Link>
-      </td>
-      {stages ? (
-        stages.map((stage) => (
-          <td key={stage.key} className="px-2 py-3 text-center" title={stage.label}>
-            {stage.completedAt ? (
-              <CheckCircle2 className="mx-auto h-4 w-4 text-emerald-500" />
-            ) : (
-              <Circle className="mx-auto h-4 w-4 text-muted-foreground/40" />
-            )}
-          </td>
-        ))
-      ) : (
-        <td colSpan={STAGE_LABELS.length} className="py-3 text-center text-xs text-muted-foreground">
-          Loading...
-        </td>
-      )}
-    </tr>
-  );
-}
-
 export default function AnalysisPage() {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [state, setState] = useState<LoadState>('loading');
+  const [projectsState, setProjectsState] = useState<LoadState>('loading');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   useEffect(() => {
     projectService
       .list()
       .then((data) => {
         setProjects(data);
-        setState('loaded');
+        setProjectsState('loaded');
+        if (data.length > 0) setSelectedProjectId(data[0].id);
       })
-      .catch(() => setState('error'));
+      .catch(() => setProjectsState('error'));
   }, []);
+
+  const analysis = useProjectFullAnalysis(selectedProjectId ?? '');
+
+  const findingsCount = (analysis.security?.findings.length ?? 0) + (analysis.performance?.findings.length ?? 0);
+  const overallScore = computeOverallScore([
+    analysis.architecture?.architectureScore ?? null,
+    analysis.security ? 100 - analysis.security.overallRiskScore : null,
+    analysis.performance?.performanceScore ?? null,
+    computeCloudReadiness(analysis.plan),
+    computeMaintainability(analysis.architecture?.architectureScore ?? null, findingsCount),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-semibold">Analysis</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Which analyses have been run across all of your projects
+          Full AI-generated analysis for a single project - technology stack, architecture, security, performance,
+          and modernization roadmap.
         </p>
       </div>
 
-      {state === 'loading' && <p className="text-sm text-muted-foreground">Loading projects...</p>}
-      {state === 'error' && <p className="text-sm text-destructive">Failed to load projects</p>}
+      {projectsState === 'loading' && <p className="text-sm text-muted-foreground">Loading projects...</p>}
+      {projectsState === 'error' && <p className="text-sm text-destructive">Failed to load projects</p>}
 
-      {state === 'loaded' && projects.length === 0 && (
+      {projectsState === 'loaded' && projects.length === 0 && (
         <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border p-10 text-center">
           <FolderOpen className="h-8 w-8 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
-            No projects uploaded yet. <Link href="/upload">Upload your first project</Link> to run analyses on it.
+            No projects uploaded yet. <Link href="/upload">Upload your first project</Link> to see its analysis
+            here.
           </p>
         </div>
       )}
 
-      {state === 'loaded' && projects.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border border-border bg-card">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                <th className="py-3 pl-4 pr-4">Project</th>
-                {STAGE_LABELS.map((label) => (
-                  <th key={label} className="px-2 py-3 text-center font-medium">
-                    {label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="px-4">
-              {projects.map((project) => (
-                <AnalysisRow key={project.id} project={project} />
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {projectsState === 'loaded' && projects.length > 0 && (
+        <>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {projects.map((project) => (
+              <button
+                key={project.id}
+                type="button"
+                onClick={() => setSelectedProjectId(project.id)}
+                className={cn(
+                  'flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
+                  project.id === selectedProjectId
+                    ? 'border-primary bg-primary/5 text-foreground'
+                    : 'border-border text-muted-foreground hover:bg-muted'
+                )}
+              >
+                <ProjectThumbnail name={project.name} size={24} />
+                <span className="max-w-[10rem] truncate">{project.name}</span>
+              </button>
+            ))}
+          </div>
+
+          {analysis.state === 'loading' && <p className="text-sm text-muted-foreground">Loading analysis...</p>}
+          {analysis.state === 'error' && (
+            <p className="text-sm text-destructive">Failed to load this project&apos;s analysis</p>
+          )}
+
+          {analysis.state === 'loaded' && (
+            <div className="flex flex-col gap-4">
+              <CollapsibleSection title="Modernization Score" icon={Sparkles} animationDelayMs={0}>
+                <ModernizationScoreCard score={overallScore} />
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Technology Stack" icon={Cpu} animationDelayMs={40}>
+                {analysis.technology ? (
+                  <TechnologyDetectionPanel result={analysis.technology} />
+                ) : (
+                  <p className="text-sm text-muted-foreground">Run technology detection to see results.</p>
+                )}
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Dependency Graph" icon={GitBranch} animationDelayMs={80} defaultOpen={false}>
+                <DependencyGraphSection
+                  projectName={analysis.project?.name ?? ''}
+                  modules={analysis.business?.mainModules ?? []}
+                  entities={analysis.business?.coreEntities ?? []}
+                />
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Business Modules" icon={Layers} animationDelayMs={120}>
+                {analysis.business ? (
+                  <BusinessModulesPanel business={analysis.business} />
+                ) : (
+                  <p className="text-sm text-muted-foreground">Run business analysis to see results.</p>
+                )}
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Architecture Diagram" icon={Network} animationDelayMs={160}>
+                {analysis.architecture ? (
+                  <ArchitectureAnalysisPanel result={analysis.architecture} />
+                ) : (
+                  <p className="text-sm text-muted-foreground">Run architecture analysis to see results.</p>
+                )}
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Security Findings" icon={ShieldAlert} animationDelayMs={200}>
+                {analysis.security ? (
+                  <SecurityFindingsList findings={analysis.security.findings} />
+                ) : (
+                  <p className="text-sm text-muted-foreground">Run security analysis to see results.</p>
+                )}
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Performance Findings" icon={Gauge} animationDelayMs={240}>
+                {analysis.performance ? (
+                  <PerformanceFindingsList findings={analysis.performance.findings} />
+                ) : (
+                  <p className="text-sm text-muted-foreground">Run performance analysis to see results.</p>
+                )}
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Migration Roadmap" icon={Map} animationDelayMs={280}>
+                {analysis.plan ? (
+                  <MigrationRoadmapPanel plan={analysis.plan} />
+                ) : (
+                  <p className="text-sm text-muted-foreground">Generate a modernization roadmap to see results.</p>
+                )}
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Modernization Suggestions" icon={Lightbulb} animationDelayMs={320}>
+                {analysis.plan ? (
+                  <ModernizationSuggestionsList suggestions={analysis.plan.quickWins} />
+                ) : (
+                  <p className="text-sm text-muted-foreground">Generate a modernization roadmap to see results.</p>
+                )}
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Cloud Recommendation" icon={Cloud} animationDelayMs={360}>
+                <CloudRecommendationPanel plan={analysis.plan} />
+              </CollapsibleSection>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -3,6 +3,7 @@
  */
 
 export { useDashboardAnalytics, type DashboardAnalytics } from './use-dashboard-analytics';
+export { useProjectFullAnalysis, type ProjectFullAnalysis } from './use-project-full-analysis';
 
 import { useState, useEffect, useCallback } from 'react';
 import type { LucideIcon } from 'lucide-react';
