@@ -9,6 +9,7 @@ import java.util.Map;
 public record ExtractionResult(
         String storagePath,
         long totalFiles,
+        long totalFolders,
         long totalSizeBytes,
         Map<String, Long> fileExtensionBreakdown
 ) {

@@ -16,6 +16,7 @@ public class ProjectSummaryMapper {
                 .name(project.getName())
                 .originalFileName(project.getOriginalFileName())
                 .totalFiles(project.getTotalFiles())
+                .totalFolders(project.getTotalFolders())
                 .totalSizeBytes(project.getTotalSizeBytes())
                 .fileExtensionBreakdown(project.getFileExtensionBreakdown())
                 .createdAt(project.getCreatedAt())

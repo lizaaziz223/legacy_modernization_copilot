@@ -49,6 +49,17 @@ export function triggerBlobDownload(blob: Blob, filename: string): void {
   window.URL.revokeObjectURL(url);
 }
 
+/**
+ * Formats a duration in seconds as a short human string, e.g. "45s" or "2m 5s".
+ */
+export function formatDuration(totalSeconds: number): string {
+  const rounded = Math.max(0, Math.round(totalSeconds));
+  const minutes = Math.floor(rounded / 60);
+  const seconds = rounded % 60;
+  if (minutes === 0) return `${seconds}s`;
+  return `${minutes}m ${seconds}s`;
+}
+
 export function formatBytes(bytes: number, decimals = 2): string {
   if (bytes === 0) return '0 Bytes';
 

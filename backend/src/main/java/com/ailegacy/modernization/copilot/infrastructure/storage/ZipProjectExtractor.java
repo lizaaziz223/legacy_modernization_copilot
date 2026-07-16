@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -75,6 +76,7 @@ public class ZipProjectExtractor {
         long totalSize = 0;
         long totalFiles = 0;
         Map<String, Long> breakdown = new TreeMap<>();
+        Set<String> directories = new HashSet<>();
 
         try {
             Files.createDirectories(projectDir);
@@ -100,7 +102,12 @@ public class ZipProjectExtractor {
                         continue;
                     }
 
-                    Files.createDirectories(resolved.getParent());
+                    Path parent = resolved.getParent();
+                    if (!parent.equals(projectDir)) {
+                        directories.add(projectDir.relativize(parent).toString());
+                    }
+
+                    Files.createDirectories(parent);
                     long bytesWritten;
                     try (OutputStream out = Files.newOutputStream(resolved)) {
                         bytesWritten = zis.transferTo(out);
@@ -125,8 +132,9 @@ public class ZipProjectExtractor {
                 );
             }
 
-            log.info("Project archive extracted | projectId={} | files={} | sizeBytes={}", projectId, totalFiles, totalSize);
-            return new ExtractionResult(projectDir.toString(), totalFiles, totalSize, breakdown);
+            log.info("Project archive extracted | projectId={} | files={} | folders={} | sizeBytes={}",
+                    projectId, totalFiles, directories.size(), totalSize);
+            return new ExtractionResult(projectDir.toString(), totalFiles, directories.size(), totalSize, breakdown);
 
         } catch (IOException ex) {
             FileSystemUtils.deleteRecursively(projectDir.toFile());

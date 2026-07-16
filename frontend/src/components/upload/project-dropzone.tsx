@@ -60,7 +60,8 @@ export function ProjectDropzone({ onFileSelected, disabled, error }: ProjectDrop
         <UploadCloud className="h-8 w-8 text-muted-foreground" />
         <p className="text-sm font-medium">Drag and drop a ZIP archive here, or click to browse</p>
         <p className="text-xs text-muted-foreground">
-          Only .java, .jsp, .xml, .properties, .sql, .yaml, .yml, .cbl and .jcl files will be extracted
+          Only .java, .jsp, .xml, .properties, .sql, .yaml, .yml, .cbl, .jcl, .gradle, .kts, .mf and .class files
+          will be extracted
         </p>
         <input
           ref={inputRef}

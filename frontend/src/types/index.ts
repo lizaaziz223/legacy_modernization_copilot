@@ -7,6 +7,7 @@ export interface Project {
   name: string;
   originalFileName: string;
   totalFiles: number;
+  totalFolders: number;
   totalSizeBytes: number;
   fileExtensionBreakdown: Record<string, number>;
   createdAt: string;

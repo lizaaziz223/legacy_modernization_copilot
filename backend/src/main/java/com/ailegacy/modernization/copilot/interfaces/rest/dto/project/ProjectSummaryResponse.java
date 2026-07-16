@@ -19,6 +19,7 @@ public class ProjectSummaryResponse {
     private String name;
     private String originalFileName;
     private long totalFiles;
+    private long totalFolders;
     private long totalSizeBytes;
     private Map<String, Long> fileExtensionBreakdown;
 

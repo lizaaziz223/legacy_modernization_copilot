@@ -40,6 +40,7 @@ public class UploadProjectUseCase implements UseCase<UploadProjectCommand, Proje
                 .originalFileName(command.file().getOriginalFilename())
                 .storagePath(result.storagePath())
                 .totalFiles(result.totalFiles())
+                .totalFolders(result.totalFolders())
                 .totalSizeBytes(result.totalSizeBytes())
                 .fileExtensionBreakdown(result.fileExtensionBreakdown())
                 .build();

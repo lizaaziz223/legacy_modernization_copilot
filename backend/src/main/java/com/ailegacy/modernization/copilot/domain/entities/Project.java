@@ -40,6 +40,8 @@ public class Project {
 
     private long totalFiles;
 
+    private long totalFolders;
+
     private long totalSizeBytes;
 
     private Map<String, Long> fileExtensionBreakdown;
