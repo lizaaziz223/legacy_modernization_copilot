@@ -2,6 +2,7 @@ package com.ailegacy.modernization.copilot.infrastructure.report;
 
 import com.ailegacy.modernization.copilot.domain.entities.ArchitectureAnalysisReport;
 import com.ailegacy.modernization.copilot.domain.entities.BusinessAnalysisReport;
+import com.ailegacy.modernization.copilot.domain.entities.DetectedAttribute;
 import com.ailegacy.modernization.copilot.domain.entities.DetectedTechnology;
 import com.ailegacy.modernization.copilot.domain.entities.GeneratedSpringBootCode;
 import com.ailegacy.modernization.copilot.domain.entities.ModernizationPlan;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Compiles an Enterprise Modernization Report PDF from a project and every
@@ -84,10 +86,12 @@ public class ModernizationReportPdfGenerator {
             writer.addParagraph(NOT_YET_ANALYZED);
             return;
         }
-        writer.addKeyValue("Java version", result.getJavaVersion());
-        writer.addKeyValue("Build tool", result.getBuildTool());
-        writer.addKeyValue("Application server", result.getApplicationServer());
-        writer.addKeyValue("Database(s)", result.getDatabases().isEmpty() ? "Unknown" : String.join(", ", result.getDatabases()));
+        writer.addKeyValue("Java version", result.getJavaVersion().getValue());
+        writer.addKeyValue("Build tool", result.getBuildTool().getValue());
+        writer.addKeyValue("Application server", result.getApplicationServer().getValue());
+        writer.addKeyValue("Database(s)", result.getDatabases().isEmpty()
+                ? "Unknown"
+                : result.getDatabases().stream().map(DetectedAttribute::getValue).collect(Collectors.joining(", ")));
         writer.addSpacer(4f);
         if (result.getDetectedTechnologies().isEmpty()) {
             writer.addParagraph("No legacy technologies were detected.");

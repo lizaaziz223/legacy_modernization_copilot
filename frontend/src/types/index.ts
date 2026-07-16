@@ -83,14 +83,35 @@ export interface DetectedTechnology {
   evidence: string[];
 }
 
+/**
+ * A single detected project attribute (a version, a build tool, a packaging
+ * style, ...) together with a confidence score and the evidence that
+ * produced it.
+ */
+export interface DetectedAttribute {
+  value: string;
+  confidenceScore: number;
+  evidence: string[];
+}
+
 export interface TechnologyDetectionResult {
   id: string;
   projectId: string;
   detectedTechnologies: DetectedTechnology[];
-  javaVersion: string;
-  databases: string[];
-  buildTool: string;
-  applicationServer: string;
+  javaVersion: DetectedAttribute;
+  jdkVersion: DetectedAttribute;
+  buildTool: DetectedAttribute;
+  mavenVersion: DetectedAttribute;
+  gradleVersion: DetectedAttribute;
+  springVersion: DetectedAttribute;
+  springBootVersion: DetectedAttribute;
+  servletVersion: DetectedAttribute;
+  jspVersion: DetectedAttribute;
+  hibernateVersion: DetectedAttribute;
+  applicationServer: DetectedAttribute;
+  packaging: DetectedAttribute;
+  configurationStyles: DetectedAttribute[];
+  databases: DetectedAttribute[];
   createdAt: string;
 }
 

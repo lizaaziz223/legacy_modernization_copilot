@@ -1,5 +1,6 @@
 package com.ailegacy.modernization.copilot.infrastructure.analysis;
 
+import com.ailegacy.modernization.copilot.domain.entities.DetectedAttribute;
 import com.ailegacy.modernization.copilot.infrastructure.analysis.model.ScannedFile;
 import org.springframework.stereotype.Component;
 
@@ -7,26 +8,45 @@ import java.util.List;
 
 /**
  * Detects the build tool from its descriptor file.
- *
- * Note: Gradle build files (build.gradle / build.gradle.kts) are not among the
- * project upload module's supported extensions, so they never reach disk and
- * cannot be detected here; Gradle projects will report "Unknown".
  */
 @Component
 public class BuildToolDetector {
 
-    public String detect(List<ScannedFile> files) {
+    public DetectedAttribute detect(List<ScannedFile> files) {
         boolean hasPom = files.stream().anyMatch(f -> "pom.xml".equalsIgnoreCase(f.fileName()));
         if (hasPom) {
-            return "Maven";
+            return DetectedAttribute.builder()
+                    .value("Maven")
+                    .confidenceScore(95)
+                    .evidence(List.of("pom.xml found"))
+                    .build();
+        }
+
+        boolean hasGradleBuild = files.stream().anyMatch(this::isGradleBuildFile);
+        boolean hasGradleWrapper = files.stream().anyMatch(f -> "gradle-wrapper.properties".equalsIgnoreCase(f.fileName()));
+        if (hasGradleBuild || hasGradleWrapper) {
+            return DetectedAttribute.builder()
+                    .value("Gradle")
+                    .confidenceScore(90)
+                    .evidence(List.of(hasGradleBuild ? "build.gradle / build.gradle.kts found" : "gradle-wrapper.properties found"))
+                    .build();
         }
 
         boolean hasAntBuild = files.stream().anyMatch(f -> "build.xml".equalsIgnoreCase(f.fileName()));
         if (hasAntBuild) {
-            return "Ant";
+            return DetectedAttribute.builder()
+                    .value("Ant")
+                    .confidenceScore(85)
+                    .evidence(List.of("build.xml found"))
+                    .build();
         }
 
-        return "Unknown";
+        return DetectedAttribute.unknown();
+    }
+
+    private boolean isGradleBuildFile(ScannedFile file) {
+        String name = file.fileName().toLowerCase();
+        return name.equals("build.gradle") || name.equals("build.gradle.kts");
     }
 
 }

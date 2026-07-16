@@ -18,10 +18,21 @@ public class TechnologyDetectionResponse {
     private String id;
     private String projectId;
     private List<DetectedTechnologyResponse> detectedTechnologies;
-    private String javaVersion;
-    private List<String> databases;
-    private String buildTool;
-    private String applicationServer;
+
+    private DetectedAttributeResponse javaVersion;
+    private DetectedAttributeResponse jdkVersion;
+    private DetectedAttributeResponse buildTool;
+    private DetectedAttributeResponse mavenVersion;
+    private DetectedAttributeResponse gradleVersion;
+    private DetectedAttributeResponse springVersion;
+    private DetectedAttributeResponse springBootVersion;
+    private DetectedAttributeResponse servletVersion;
+    private DetectedAttributeResponse jspVersion;
+    private DetectedAttributeResponse hibernateVersion;
+    private DetectedAttributeResponse applicationServer;
+    private DetectedAttributeResponse packaging;
+    private List<DetectedAttributeResponse> configurationStyles;
+    private List<DetectedAttributeResponse> databases;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Instant createdAt;

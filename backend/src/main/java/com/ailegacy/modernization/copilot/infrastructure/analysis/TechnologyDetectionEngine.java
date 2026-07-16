@@ -1,5 +1,6 @@
 package com.ailegacy.modernization.copilot.infrastructure.analysis;
 
+import com.ailegacy.modernization.copilot.domain.entities.DetectedAttribute;
 import com.ailegacy.modernization.copilot.domain.entities.DetectedTechnology;
 import com.ailegacy.modernization.copilot.domain.entities.TechnologyDetectionResult;
 import com.ailegacy.modernization.copilot.infrastructure.analysis.model.ScannedFile;
@@ -15,8 +16,8 @@ import java.util.List;
 
 /**
  * Technology detection agent: scans an extracted project's files and reports
- * which legacy technologies it uses, with a confidence score and supporting
- * evidence for each.
+ * which legacy technologies it uses, plus every build/runtime/framework
+ * version it can infer, each with a confidence score and supporting evidence.
  *
  * This is a single, self-contained pipeline stage - it does not trigger or feed
  * into architecture analysis.
@@ -31,9 +32,19 @@ public class TechnologyDetectionEngine {
     private final ProjectFileScanner fileScanner;
     private final TechnologyRuleCatalog ruleCatalog;
     private final JavaVersionDetector javaVersionDetector;
+    private final JdkVersionDetector jdkVersionDetector;
     private final DatabaseDetector databaseDetector;
     private final BuildToolDetector buildToolDetector;
     private final ApplicationServerDetector applicationServerDetector;
+    private final MavenVersionDetector mavenVersionDetector;
+    private final GradleVersionDetector gradleVersionDetector;
+    private final SpringVersionDetector springVersionDetector;
+    private final SpringBootVersionDetector springBootVersionDetector;
+    private final ServletVersionDetector servletVersionDetector;
+    private final JspVersionDetector jspVersionDetector;
+    private final HibernateVersionDetector hibernateVersionDetector;
+    private final PackagingDetector packagingDetector;
+    private final ConfigurationStyleDetector configurationStyleDetector;
 
     public TechnologyDetectionResult detect(String projectId, String storagePath) {
         List<ScannedFile> files = fileScanner.scan(storagePath);
@@ -44,17 +55,31 @@ public class TechnologyDetectionEngine {
                 .sorted(Comparator.comparingInt(DetectedTechnology::getConfidenceScore).reversed())
                 .toList();
 
+        DetectedAttribute javaVersion = javaVersionDetector.detect(files, storagePath);
+        DetectedAttribute springBootVersion = springBootVersionDetector.detect(files);
+        DetectedAttribute servletVersion = servletVersionDetector.detect(files);
+
         TechnologyDetectionResult result = TechnologyDetectionResult.builder()
                 .projectId(projectId)
                 .detectedTechnologies(detectedTechnologies)
-                .javaVersion(javaVersionDetector.detect(files).orElse("Unknown"))
-                .databases(databaseDetector.detect(files))
+                .javaVersion(javaVersion)
+                .jdkVersion(jdkVersionDetector.detect(files, storagePath, javaVersion))
                 .buildTool(buildToolDetector.detect(files))
+                .mavenVersion(mavenVersionDetector.detect(files))
+                .gradleVersion(gradleVersionDetector.detect(files))
+                .springVersion(springVersionDetector.detect(files, springBootVersion))
+                .springBootVersion(springBootVersion)
+                .servletVersion(servletVersion)
+                .jspVersion(jspVersionDetector.detect(files, servletVersion))
+                .hibernateVersion(hibernateVersionDetector.detect(files))
                 .applicationServer(applicationServerDetector.detect(files))
+                .packaging(packagingDetector.detect(files))
+                .configurationStyles(configurationStyleDetector.detect(files))
+                .databases(databaseDetector.detect(files))
                 .build();
 
-        log.info("Technology detection completed | projectId={} | technologiesFound={} | filesScanned={}",
-                projectId, detectedTechnologies.size(), files.size());
+        log.info("Technology detection completed | projectId={} | technologiesFound={} | filesScanned={} | javaVersion={}",
+                projectId, detectedTechnologies.size(), files.size(), javaVersion.getValue());
         return result;
     }
 

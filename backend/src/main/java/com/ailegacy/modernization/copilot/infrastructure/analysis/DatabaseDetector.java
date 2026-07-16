@@ -1,8 +1,10 @@
 package com.ailegacy.modernization.copilot.infrastructure.analysis;
 
+import com.ailegacy.modernization.copilot.domain.entities.DetectedAttribute;
 import com.ailegacy.modernization.copilot.infrastructure.analysis.model.ScannedFile;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -34,16 +36,33 @@ public class DatabaseDetector {
         MARKERS.put("jdbc:sqlite", "SQLite");
     }
 
-    public List<String> detect(List<ScannedFile> files) {
-        Set<String> found = new LinkedHashSet<>();
+    public List<DetectedAttribute> detect(List<ScannedFile> files) {
+        Map<String, List<String>> evidenceByDatabase = new LinkedHashMap<>();
+
         for (ScannedFile file : files) {
             for (Map.Entry<String, String> marker : MARKERS.entrySet()) {
                 if (file.content().contains(marker.getKey())) {
-                    found.add(marker.getValue());
+                    evidenceByDatabase
+                            .computeIfAbsent(marker.getValue(), k -> new ArrayList<>())
+                            .add("\"" + marker.getKey() + "\" found in " + file.relativePath());
                 }
             }
         }
-        return List.copyOf(found);
+
+        List<DetectedAttribute> results = new ArrayList<>();
+        Set<String> seen = new LinkedHashSet<>();
+        for (Map.Entry<String, List<String>> entry : evidenceByDatabase.entrySet()) {
+            if (!seen.add(entry.getKey())) {
+                continue;
+            }
+            List<String> evidence = entry.getValue().size() > 5 ? entry.getValue().subList(0, 5) : entry.getValue();
+            results.add(DetectedAttribute.builder()
+                    .value(entry.getKey())
+                    .confidenceScore(Math.min(100, 60 + entry.getValue().size() * 10))
+                    .evidence(List.copyOf(evidence))
+                    .build());
+        }
+        return results;
     }
 
 }

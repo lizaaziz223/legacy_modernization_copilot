@@ -47,7 +47,7 @@ class UploadProjectUseCaseTest {
         UploadProjectCommand command = new UploadProjectCommand(zip, "owner-1");
 
         ExtractionResult extractionResult = new ExtractionResult(
-                "/data/projects/generated-id", 3, 4096, Map.of("java", 2L, "xml", 1L)
+                "/data/projects/generated-id", "/data/projects/generated-id.zip", 3, 4096, Map.of("java", 2L, "xml", 1L)
         );
         when(zipProjectExtractor.extract(any(), anyString())).thenReturn(extractionResult);
         when(projectRepository.save(any(Project.class))).thenAnswer(invocation -> invocation.getArgument(0));

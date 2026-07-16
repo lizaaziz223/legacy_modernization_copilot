@@ -5,6 +5,7 @@ import com.ailegacy.modernization.copilot.application.use_cases.UseCase;
 import com.ailegacy.modernization.copilot.application.use_cases.project.GetProjectCommand;
 import com.ailegacy.modernization.copilot.domain.entities.ArchitectureAnalysisReport;
 import com.ailegacy.modernization.copilot.domain.entities.BusinessAnalysisReport;
+import com.ailegacy.modernization.copilot.domain.entities.DetectedAttribute;
 import com.ailegacy.modernization.copilot.domain.entities.ModernizationPlan;
 import com.ailegacy.modernization.copilot.domain.entities.PerformanceAnalysisReport;
 import com.ailegacy.modernization.copilot.domain.entities.PerformanceFinding;
@@ -95,12 +96,15 @@ public class GenerateModernizationPlanUseCase implements UseCase<GetProjectComma
         String technologies = result.getDetectedTechnologies().stream()
                 .map(t -> t.getTechnology().name())
                 .collect(Collectors.joining(", "));
+        String databases = result.getDatabases().stream()
+                .map(DetectedAttribute::getValue)
+                .collect(Collectors.joining(", "));
         return "Technologies: %s. Java version: %s. Database: %s. Build tool: %s. Application server: %s.".formatted(
                 technologies.isBlank() ? "none detected" : technologies,
-                result.getJavaVersion(),
-                String.join(", ", result.getDatabases()),
-                result.getBuildTool(),
-                result.getApplicationServer()
+                result.getJavaVersion().getValue(),
+                databases,
+                result.getBuildTool().getValue(),
+                result.getApplicationServer().getValue()
         );
     }
 
