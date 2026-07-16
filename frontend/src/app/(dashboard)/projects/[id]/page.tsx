@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { isAxiosError } from 'axios';
-import { ScanSearch, Loader2, Network, Map, Download } from 'lucide-react';
+import { ScanSearch, Loader2, Network, Map, Download, ClipboardList } from 'lucide-react';
 import { ProjectSummaryCard } from '@/components/upload';
 import { TechnologyDetectionPanel } from '@/components/detection';
 import { ArchitectureAnalysisPanel } from '@/components/architecture';
@@ -154,17 +155,26 @@ export default function ProjectDetailPage() {
           <h1 className="text-2xl font-semibold">{project.name}</h1>
           <p className="mt-1 text-sm text-muted-foreground">Project details and analysis</p>
         </div>
-        <div>
-          <button
-            type="button"
-            onClick={handleDownloadReport}
-            disabled={isDownloading}
-            className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
+        <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-start">
+          <Link
+            href={`/projects/${id}/executive-summary`}
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground no-underline hover:opacity-90"
           >
-            {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            {isDownloading ? 'Preparing PDF...' : 'Download PDF Report'}
-          </button>
-          {downloadError && <p className="mt-1 text-sm text-destructive">{downloadError}</p>}
+            <ClipboardList className="h-4 w-4" />
+            Executive Summary
+          </Link>
+          <div>
+            <button
+              type="button"
+              onClick={handleDownloadReport}
+              disabled={isDownloading}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
+            >
+              {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              {isDownloading ? 'Preparing PDF...' : 'Download PDF Report'}
+            </button>
+            {downloadError && <p className="mt-1 text-sm text-destructive">{downloadError}</p>}
+          </div>
         </div>
       </div>
 

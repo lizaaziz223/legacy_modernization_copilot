@@ -20,12 +20,54 @@ export interface AnalysisRecord {
   createdAt: string;
 }
 
+export type SeverityLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+export interface SecurityFinding {
+  issueType: string;
+  title: string;
+  description: string;
+  severity: SeverityLevel;
+  riskScore: number;
+  location: string;
+  recommendation: string;
+  modernAlternative: string;
+  evidence: string[];
+}
+
+export interface PerformanceFinding {
+  issueType: string;
+  title: string;
+  description: string;
+  location: string;
+  optimizationSuggestion: string;
+  modernAlternative: string;
+  evidence: string[];
+}
+
 export interface SecurityAnalysisSummary extends AnalysisRecord {
   overallRiskScore: number;
+  findings: SecurityFinding[];
+  filesAnalyzed: number;
+  totalProjectFiles: number;
 }
 
 export interface PerformanceAnalysisSummary extends AnalysisRecord {
   performanceScore: number;
+  performanceScoreJustification: string;
+  findings: PerformanceFinding[];
+  filesAnalyzed: number;
+  totalProjectFiles: number;
+}
+
+export interface BusinessAnalysisResult extends AnalysisRecord {
+  businessPurpose: string;
+  mainModules: string[];
+  criticalWorkflows: string[];
+  coreEntities: string[];
+  executiveSummary: string;
+  businessSummary: string;
+  filesAnalyzed: number;
+  totalProjectFiles: number;
 }
 
 export interface Scan {

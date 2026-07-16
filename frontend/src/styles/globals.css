@@ -38,6 +38,22 @@
 
     --secondary: 217.2 91.2% 59.8%;
     --secondary-foreground: 222.2 47.6% 11.2%;
+
+    /* Chart palette: fixed categorical hue order (never cycled/reassigned per filter) */
+    --chart-1: 212.8 67.7% 50.2%;
+    --chart-2: 158.5 73.3% 39.6%;
+    --chart-3: 40.8 100.0% 46.5%;
+    --chart-4: 120.0 100.0% 25.7%;
+    --chart-5: 248.8 48.4% 44.1%;
+    --chart-6: 0.4 73.5% 58.6%;
+    --chart-7: 337.4 70.3% 69.6%;
+    --chart-8: 17.0 82.1% 56.3%;
+
+    /* Status palette: fixed/reserved, never reused for series identity */
+    --status-good: 120.0 86.3% 34.3%;
+    --status-warning: 40.8 95.7% 53.9%;
+    --status-serious: 16.8 79.3% 63.9%;
+    --status-critical: 0.0 61.3% 52.4%;
   }
 
   .dark {
@@ -68,6 +84,22 @@
 
     --secondary: 222.2 47.6% 11.2%;
     --secondary-foreground: 210 40% 98%;
+
+    /* Chart palette: dark-mode steps, same fixed hue order, tuned for the dark surface */
+    --chart-1: 212.8 76.8% 56.1%;
+    --chart-2: 159.2 72.7% 35.9%;
+    --chart-3: 39.7 100.0% 39.4%;
+    --chart-4: 120.0 100.0% 25.7%;
+    --chart-5: 246.6 69.4% 71.8%;
+    --chart-6: 0.0 71.8% 65.3%;
+    --chart-7: 338.2 61.1% 57.6%;
+    --chart-8: 17.1 70.2% 50.0%;
+
+    /* Status palette is fixed across modes - same four steps, both clear 3:1 on the dark surface */
+    --status-good: 120.0 86.3% 34.3%;
+    --status-warning: 40.8 95.7% 53.9%;
+    --status-serious: 16.8 79.3% 63.9%;
+    --status-critical: 0.0 61.3% 52.4%;
   }
 }
 
@@ -122,5 +154,36 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.4s ease-out both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up {
+    animation: none;
+  }
+}
+
+/* Printed pages (e.g. the Executive Summary) should keep card accent colors -
+   browsers drop background colors in print by default unless told otherwise. */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 }

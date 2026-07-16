@@ -2,6 +2,8 @@
  * Custom Hooks for the Application
  */
 
+export { useDashboardAnalytics, type DashboardAnalytics } from './use-dashboard-analytics';
+
 import { useState, useEffect, useCallback } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { ScanSearch, BookOpen, Network, ShieldAlert, Gauge, Map, Code2 } from 'lucide-react';
