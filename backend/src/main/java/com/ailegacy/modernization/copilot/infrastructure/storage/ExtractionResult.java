@@ -8,6 +8,7 @@ import java.util.Map;
  */
 public record ExtractionResult(
         String storagePath,
+        String originalZipPath,
         long totalFiles,
         long totalSizeBytes,
         Map<String, Long> fileExtensionBreakdown

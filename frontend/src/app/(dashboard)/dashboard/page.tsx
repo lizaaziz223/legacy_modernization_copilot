@@ -9,10 +9,12 @@ import { ProjectCard } from '@/components/projects';
 import { projectService } from '@/services';
 import { Project } from '@/types';
 import { formatBytes, formatDateTime } from '@/utils';
+import { useProjectListActions } from '@/hooks';
 
 export default function DashboardPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { handleRenamed, handleDeleteRequested } = useProjectListActions(projects, setProjects);
 
   useEffect(() => {
     projectService
@@ -69,7 +71,12 @@ export default function DashboardPage() {
             </p>
           )}
           {projects.slice(0, 6).map((project) => (
-            <ProjectCard key={project.id} project={project} />
+            <ProjectCard
+              key={project.id}
+              project={project}
+              onRenamed={handleRenamed}
+              onDeleteRequested={handleDeleteRequested}
+            />
           ))}
         </div>
       </div>

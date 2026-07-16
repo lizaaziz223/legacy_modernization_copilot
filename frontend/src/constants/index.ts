@@ -18,6 +18,7 @@ export const API_ENDPOINTS = {
   PROJECTS_LIST: '/projects',
   PROJECTS_UPLOAD: '/projects',
   PROJECTS_GET: (id: string) => `/projects/${id}`,
+  PROJECTS_DOWNLOAD: (id: string) => `/projects/${id}/download`,
 
   // Technology Detection
   TECHNOLOGY_DETECTION: (projectId: string) => `/projects/${projectId}/technology-detection`,
@@ -72,6 +73,7 @@ export const API_ENDPOINTS = {
  */
 export const PAGINATION_LIMIT = 10;
 export const TOAST_DURATION = 3000;
+export const UNDO_TOAST_DURATION = 10000;
 
 /**
  * Navigation

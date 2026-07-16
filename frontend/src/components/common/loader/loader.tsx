@@ -1,7 +1,15 @@
 /**
- * Loader Component Placeholder
- * Loading indicator component
+ * Loader Component
+ * Reusable inline loading spinner, e.g. for in-flight button actions.
  */
-export function Loader() {
-  return <div>{/* Loader content placeholder */}</div>;
+import { Loader2 } from 'lucide-react';
+import { cn } from '@/utils';
+
+interface LoaderProps {
+  className?: string;
+  size?: number;
+}
+
+export function Loader({ className, size = 16 }: LoaderProps) {
+  return <Loader2 className={cn('animate-spin', className)} size={size} aria-hidden="true" />;
 }

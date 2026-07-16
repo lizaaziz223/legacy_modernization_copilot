@@ -38,6 +38,8 @@ public class Project {
 
     private String storagePath;
 
+    private String originalZipPath;
+
     private long totalFiles;
 
     private long totalSizeBytes;

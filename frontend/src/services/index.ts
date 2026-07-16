@@ -89,6 +89,19 @@ export const projectService = {
     const response = await apiClient.get<ApiResponse<Project>>(API_ENDPOINTS.PROJECTS_GET(id));
     return response.data.data;
   },
+  rename: async (id: string, name: string): Promise<Project> => {
+    const response = await apiClient.patch<ApiResponse<Project>>(API_ENDPOINTS.PROJECTS_GET(id), { name });
+    return response.data.data;
+  },
+  delete: async (id: string): Promise<void> => {
+    await apiClient.delete<ApiResponse<void>>(API_ENDPOINTS.PROJECTS_GET(id));
+  },
+  downloadZip: async (id: string): Promise<Blob> => {
+    const response = await apiClient.get<Blob>(API_ENDPOINTS.PROJECTS_DOWNLOAD(id), {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };
 
 /**

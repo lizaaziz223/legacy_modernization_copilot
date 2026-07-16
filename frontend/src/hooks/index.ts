@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { ScanSearch, BookOpen, Network, ShieldAlert, Gauge, Map, Code2 } from 'lucide-react';
 import {
@@ -13,7 +14,10 @@ import {
   performanceAnalysisStatusService,
   modernizationPlanService,
   springBootGenerationStatusService,
+  projectService,
 } from '@/services';
+import { useToast } from '@/context/toast-context';
+import type { Project } from '@/types';
 
 export interface AnalysisStage {
   key: string;
@@ -169,4 +173,62 @@ export function usePrevious<T>(value: T): T | undefined {
   }, [value]);
 
   return previous;
+}
+
+/**
+ * useProjectListActions Hook
+ * Rename/delete handlers shared by any page rendering a list of ProjectCards
+ * (Dashboard, History). Delete is optimistic: the project disappears from
+ * the list immediately and an undo snackbar appears; the actual DELETE
+ * request only fires once the snackbar expires without being undone, so the
+ * list (and anything derived from it) is always in sync with what's really
+ * on the server without a manual refetch.
+ */
+export function useProjectListActions(
+  projects: Project[],
+  setProjects: Dispatch<SetStateAction<Project[]>>
+) {
+  const toast = useToast();
+
+  const handleRenamed = useCallback(
+    (updated: Project) => {
+      setProjects((prev) => prev.map((project) => (project.id === updated.id ? updated : project)));
+    },
+    [setProjects]
+  );
+
+  const handleDeleteRequested = useCallback(
+    (projectId: string) => {
+      const index = projects.findIndex((project) => project.id === projectId);
+      if (index === -1) return;
+      const removed = projects[index];
+
+      setProjects((prev) => prev.filter((project) => project.id !== projectId));
+
+      toast.showUndo(`Deleted "${removed.name}"`, {
+        onUndo: () => {
+          setProjects((prev) => {
+            if (prev.some((project) => project.id === projectId)) return prev;
+            const next = [...prev];
+            next.splice(index, 0, removed);
+            return next;
+          });
+        },
+        onExpire: () => {
+          projectService.delete(projectId).catch(() => {
+            setProjects((prev) => {
+              if (prev.some((project) => project.id === projectId)) return prev;
+              const next = [...prev];
+              next.splice(index, 0, removed);
+              return next;
+            });
+            toast.showSuccess(`Failed to delete "${removed.name}" - restored`);
+          });
+        },
+      });
+    },
+    [projects, setProjects, toast]
+  );
+
+  return { handleRenamed, handleDeleteRequested };
 }

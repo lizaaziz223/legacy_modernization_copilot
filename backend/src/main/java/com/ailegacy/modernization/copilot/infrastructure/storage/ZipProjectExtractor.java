@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
@@ -34,6 +35,7 @@ import java.util.zip.ZipInputStream;
 public class ZipProjectExtractor {
 
     private static final String PROJECTS_SUBDIRECTORY = "projects";
+    private static final String ZIP_SUFFIX = ".zip";
 
     private final Set<String> supportedExtensions;
     private final Path baseDirectory;
@@ -66,11 +68,12 @@ public class ZipProjectExtractor {
         }
 
         String originalFilename = zipFile.getOriginalFilename();
-        if (originalFilename == null || !originalFilename.toLowerCase(Locale.ROOT).endsWith(".zip")) {
+        if (originalFilename == null || !originalFilename.toLowerCase(Locale.ROOT).endsWith(ZIP_SUFFIX)) {
             throw new ValidationException("Only ZIP archives are supported");
         }
 
         Path projectDir = baseDirectory.resolve(projectId).normalize();
+        Path originalZipPath = baseDirectory.resolve(projectId + ZIP_SUFFIX).normalize();
 
         long totalSize = 0;
         long totalFiles = 0;
@@ -78,6 +81,13 @@ public class ZipProjectExtractor {
 
         try {
             Files.createDirectories(projectDir);
+
+            // Persisted separately from extraction so the original archive can be
+            // re-downloaded later - extraction below only keeps files with a
+            // supported extension, discarding everything else from the archive.
+            try (var rawInputStream = zipFile.getInputStream()) {
+                Files.copy(rawInputStream, originalZipPath, StandardCopyOption.REPLACE_EXISTING);
+            }
 
             try (ZipInputStream zis = new ZipInputStream(zipFile.getInputStream())) {
                 ZipEntry entry;
@@ -126,15 +136,25 @@ public class ZipProjectExtractor {
             }
 
             log.info("Project archive extracted | projectId={} | files={} | sizeBytes={}", projectId, totalFiles, totalSize);
-            return new ExtractionResult(projectDir.toString(), totalFiles, totalSize, breakdown);
+            return new ExtractionResult(projectDir.toString(), originalZipPath.toString(), totalFiles, totalSize, breakdown);
 
         } catch (IOException ex) {
             FileSystemUtils.deleteRecursively(projectDir.toFile());
+            deleteQuietly(originalZipPath);
             log.error("Failed to extract project archive | projectId={}", projectId, ex);
             throw new ValidationException("Failed to read the uploaded archive: " + ex.getMessage(), ex);
         } catch (ValidationException ex) {
             FileSystemUtils.deleteRecursively(projectDir.toFile());
+            deleteQuietly(originalZipPath);
             throw ex;
+        }
+    }
+
+    private void deleteQuietly(Path path) {
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException ex) {
+            log.warn("Failed to clean up {} after a failed upload", path, ex);
         }
     }
 
