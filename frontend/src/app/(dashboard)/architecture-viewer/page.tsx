@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Network, Upload } from 'lucide-react';
 import { ArchitectureAnalysisPanel } from '@/components/architecture';
 import { architectureAnalysisService, projectService } from '@/services';
 import { ArchitectureAnalysisResult, Project } from '@/types';
+import { Button, EmptyState, EmptyProjectsIllustration, EmptyAnalysisIllustration } from '@/components/ui';
 
 export default function ArchitectureViewerPage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -49,9 +51,19 @@ export default function ArchitectureViewerPage() {
       </div>
 
       {projects.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No projects uploaded yet. <Link href="/upload">Upload a project</Link> to get started.
-        </p>
+        <EmptyState
+          illustration={<EmptyProjectsIllustration />}
+          title="No projects yet"
+          description="Upload a legacy application to see its current and target architecture diagrams here."
+          action={
+            <Button asChild>
+              <Link href="/upload">
+                <Upload className="h-4 w-4" />
+                Upload Project
+              </Link>
+            </Button>
+          }
+        />
       ) : (
         <>
           <div className="max-w-sm">
@@ -74,10 +86,19 @@ export default function ArchitectureViewerPage() {
 
           {status === 'loading' && <p className="text-sm text-muted-foreground">Loading architecture...</p>}
           {status === 'missing' && (
-            <p className="text-sm text-muted-foreground">
-              This project hasn&apos;t had an architecture analysis yet.{' '}
-              <Link href={`/projects/${selectedProjectId}`}>Run it from the project page</Link>.
-            </p>
+            <EmptyState
+              illustration={<EmptyAnalysisIllustration />}
+              title="No architecture analysis yet"
+              description="Run an architecture analysis on this project to see its current and target diagrams."
+              action={
+                <Button asChild>
+                  <Link href={`/projects/${selectedProjectId}`}>
+                    <Network className="h-4 w-4" />
+                    Run Analysis
+                  </Link>
+                </Button>
+              }
+            />
           )}
           {status === 'loaded' && architecture && <ArchitectureAnalysisPanel result={architecture} />}
         </>

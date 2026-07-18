@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { FolderOpen } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { projectService } from '@/services';
 import { Project } from '@/types';
 import { ProjectCard } from '@/components/projects';
+import { Button, EmptyState, EmptyProjectsIllustration } from '@/components/ui';
 
 type LoadState = 'loading' | 'loaded' | 'error';
 
@@ -34,12 +35,19 @@ export default function HistoryPage() {
       {state === 'error' && <p className="text-sm text-destructive">Failed to load project history</p>}
 
       {state === 'loaded' && projects.length === 0 && (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border p-10 text-center">
-          <FolderOpen className="h-8 w-8 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            No projects uploaded yet. <Link href="/upload">Upload your first project</Link>.
-          </p>
-        </div>
+        <EmptyState
+          illustration={<EmptyProjectsIllustration />}
+          title="No projects yet"
+          description="Upload your first legacy application to start building a project history you can revisit anytime."
+          action={
+            <Button asChild>
+              <Link href="/upload">
+                <Upload className="h-4 w-4" />
+                Upload Project
+              </Link>
+            </Button>
+          }
+        />
       )}
 
       {state === 'loaded' && projects.length > 0 && (

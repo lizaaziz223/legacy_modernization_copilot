@@ -11,6 +11,7 @@ import { ArchitectureAnalysisPanel } from '@/components/architecture';
 import { ModernizationPlanPanel } from '@/components/planner';
 import { ProjectScorecardChart } from '@/components/charts';
 import { ProjectTimeline } from '@/components/projects';
+import { Button, EmptyState, EmptyAnalysisIllustration } from '@/components/ui';
 import {
   projectService,
   technologyDetectionService,
@@ -200,85 +201,109 @@ export default function ProjectDetailPage() {
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold">Technology Detection</h2>
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleRunDetection}
-            disabled={isDetecting}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-          >
-            {isDetecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanSearch className="h-4 w-4" />}
-            {isDetecting ? 'Detecting...' : detection ? 'Re-run Technology Detection' : 'Run Technology Detection'}
-          </button>
-          {detectionError && <p className="text-sm text-destructive">{detectionError}</p>}
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Technology Detection</h2>
+          {detection && (
+            <button
+              type="button"
+              onClick={handleRunDetection}
+              disabled={isDetecting}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted disabled:opacity-50"
+            >
+              {isDetecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanSearch className="h-4 w-4" />}
+              {isDetecting ? 'Detecting...' : 'Re-run Technology Detection'}
+            </button>
+          )}
         </div>
+        {detectionError && <p className="mt-2 text-sm text-destructive">{detectionError}</p>}
 
         <div className="mt-4">
           {detection ? (
             <TechnologyDetectionPanel result={detection} />
           ) : (
-            <p className="text-sm text-muted-foreground">
-              This project hasn&apos;t been analyzed yet. Run technology detection to see results.
-            </p>
+            <EmptyState
+              illustration={<EmptyAnalysisIllustration />}
+              title="No technology detection yet"
+              description="Identify legacy frameworks, build tools, application servers, and databases used in this codebase."
+              action={
+                <Button onClick={handleRunDetection} disabled={isDetecting}>
+                  {isDetecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanSearch className="h-4 w-4" />}
+                  {isDetecting ? 'Detecting...' : 'Run Analysis'}
+                </Button>
+              }
+            />
           )}
         </div>
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold">Architecture Analysis</h2>
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleRunArchitectureAnalysis}
-            disabled={isAnalyzingArchitecture}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-          >
-            {isAnalyzingArchitecture ? <Loader2 className="h-4 w-4 animate-spin" /> : <Network className="h-4 w-4" />}
-            {isAnalyzingArchitecture
-              ? 'Analyzing...'
-              : architecture
-                ? 'Re-run Architecture Analysis'
-                : 'Run Architecture Analysis'}
-          </button>
-          {architectureError && <p className="text-sm text-destructive">{architectureError}</p>}
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Architecture Analysis</h2>
+          {architecture && (
+            <button
+              type="button"
+              onClick={handleRunArchitectureAnalysis}
+              disabled={isAnalyzingArchitecture}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted disabled:opacity-50"
+            >
+              {isAnalyzingArchitecture ? <Loader2 className="h-4 w-4 animate-spin" /> : <Network className="h-4 w-4" />}
+              {isAnalyzingArchitecture ? 'Analyzing...' : 'Re-run Architecture Analysis'}
+            </button>
+          )}
         </div>
+        {architectureError && <p className="mt-2 text-sm text-destructive">{architectureError}</p>}
 
         <div className="mt-4">
           {architecture ? (
             <ArchitectureAnalysisPanel result={architecture} />
           ) : (
-            <p className="text-sm text-muted-foreground">
-              This project hasn&apos;t had an architecture analysis yet. Run it to see the current and target
-              architecture diagrams.
-            </p>
+            <EmptyState
+              illustration={<EmptyAnalysisIllustration />}
+              title="No architecture analysis yet"
+              description="See this project's current architecture pattern and an AI-generated target architecture with a migration path."
+              action={
+                <Button onClick={handleRunArchitectureAnalysis} disabled={isAnalyzingArchitecture}>
+                  {isAnalyzingArchitecture ? <Loader2 className="h-4 w-4 animate-spin" /> : <Network className="h-4 w-4" />}
+                  {isAnalyzingArchitecture ? 'Analyzing...' : 'Run Analysis'}
+                </Button>
+              }
+            />
           )}
         </div>
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold">Modernization Roadmap</h2>
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleGeneratePlan}
-            disabled={isPlanning}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-          >
-            {isPlanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Map className="h-4 w-4" />}
-            {isPlanning ? 'Generating...' : plan ? 'Regenerate Roadmap' : 'Generate Modernization Roadmap'}
-          </button>
-          {planError && <p className="text-sm text-destructive">{planError}</p>}
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Modernization Roadmap</h2>
+          {plan && (
+            <button
+              type="button"
+              onClick={handleGeneratePlan}
+              disabled={isPlanning}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted disabled:opacity-50"
+            >
+              {isPlanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Map className="h-4 w-4" />}
+              {isPlanning ? 'Generating...' : 'Regenerate Roadmap'}
+            </button>
+          )}
         </div>
+        {planError && <p className="mt-2 text-sm text-destructive">{planError}</p>}
 
         <div className="mt-4">
           {plan ? (
             <ModernizationPlanPanel plan={plan} />
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No modernization roadmap yet. Generating one works best after running the other analyses above,
-              but isn&apos;t required.
-            </p>
+            <EmptyState
+              illustration={<EmptyAnalysisIllustration />}
+              title="No modernization roadmap yet"
+              description="Generate a prioritized migration strategy, complexity scoring, quick wins, and a risk-ranked roadmap. Works best after running the analyses above, but isn't required."
+              action={
+                <Button onClick={handleGeneratePlan} disabled={isPlanning}>
+                  {isPlanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Map className="h-4 w-4" />}
+                  {isPlanning ? 'Generating...' : 'Generate Roadmap'}
+                </Button>
+              }
+            />
           )}
         </div>
       </div>

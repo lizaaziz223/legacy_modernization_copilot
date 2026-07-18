@@ -11,3 +11,6 @@ export {
   DialogTitle,
   DialogDescription,
 } from './dialog';
+export { Button, buttonVariants, type ButtonProps } from './button';
+export { EmptyState, type EmptyStateProps } from './empty-state';
+export { EmptyProjectsIllustration, EmptyAnalysisIllustration, EmptyReportIllustration } from './illustrations';

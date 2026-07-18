@@ -15,7 +15,8 @@ import {
   DollarSign,
   Clock,
   Grid3x3,
-  FolderOpen,
+  Upload,
+  FileText,
   Download,
   Loader2,
 } from 'lucide-react';
@@ -35,7 +36,13 @@ import {
 } from '@/components/analysis';
 import { RiskList, RecommendationList } from '@/components/executive-summary';
 import { ReportBrandHeader, RiskMatrixGrid, CostEstimateCard, SpringBootRecommendationPanel } from '@/components/reports';
-import { Progress } from '@/components/ui';
+import {
+  Progress,
+  Button,
+  EmptyState,
+  EmptyProjectsIllustration,
+  EmptyReportIllustration,
+} from '@/components/ui';
 import {
   computeMaintainability,
   computeTechnicalDebt,
@@ -84,6 +91,7 @@ export default function ReportsPage() {
   const riskMatrix = buildRiskMatrix(security, plan);
   const risks = topRisks(security, plan);
   const recommendations = topRecommendations(architecture, plan, security);
+  const hasAnyAnalysis = Boolean(business || technology || architecture || security || performance || plan);
 
   const handleDownloadPdf = async () => {
     if (!project) return;
@@ -131,12 +139,19 @@ export default function ReportsPage() {
       {projectsState === 'error' && <p className="text-sm text-destructive">Failed to load projects</p>}
 
       {projectsState === 'loaded' && projects.length === 0 && (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border p-10 text-center">
-          <FolderOpen className="h-8 w-8 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            No projects uploaded yet. <Link href="/upload">Upload your first project</Link> to generate a report.
-          </p>
-        </div>
+        <EmptyState
+          illustration={<EmptyProjectsIllustration />}
+          title="No projects yet"
+          description="Upload your first legacy application to generate a modernization report for it."
+          action={
+            <Button asChild>
+              <Link href="/upload">
+                <Upload className="h-4 w-4" />
+                Upload Project
+              </Link>
+            </Button>
+          }
+        />
       )}
 
       {projectsState === 'loaded' && projects.length > 0 && (
@@ -165,7 +180,26 @@ export default function ReportsPage() {
             <p className="text-sm text-destructive">Failed to load this project&apos;s report</p>
           )}
 
-          {analysis.state === 'loaded' && project && (
+          {analysis.state === 'loaded' && project && !hasAnyAnalysis && (
+            <div className="flex flex-col gap-4">
+              <ReportBrandHeader projectName={project.name} generatedAt={new Date()} />
+              <EmptyState
+                illustration={<EmptyReportIllustration />}
+                title="Nothing to report on yet"
+                description="Run at least one analysis for this project - technology detection, architecture, security, performance, or a modernization plan - then come back here to generate its report."
+                action={
+                  <Button asChild>
+                    <Link href={`/projects/${project.id}`}>
+                      <FileText className="h-4 w-4" />
+                      Generate Report
+                    </Link>
+                  </Button>
+                }
+              />
+            </div>
+          )}
+
+          {analysis.state === 'loaded' && project && hasAnyAnalysis && (
             <div className="flex flex-col gap-4">
               <ReportBrandHeader projectName={project.name} generatedAt={new Date()} />
 
