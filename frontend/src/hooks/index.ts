@@ -4,6 +4,7 @@
 
 export { useDashboardAnalytics, type DashboardAnalytics } from './use-dashboard-analytics';
 export { useProjectFullAnalysis, type ProjectFullAnalysis } from './use-project-full-analysis';
+export { useInView } from './use-in-view';
 
 import { useState, useEffect, useCallback } from 'react';
 import type { LucideIcon } from 'lucide-react';
