@@ -16,7 +16,7 @@ export function ProjectSummaryCard({ project, technology, isDetecting }: Project
   const estimatedSeconds = estimateAnalysisSeconds(project.totalFiles, project.totalSizeBytes);
 
   return (
-    <div className="rounded-lg border border-border bg-card p-6">
+    <div className="animate-fade-in-up rounded-lg border border-border bg-card p-6">
       <div className="flex items-start gap-3">
         <ProjectThumbnail name={project.name} />
         <div className="min-w-0 flex-1">

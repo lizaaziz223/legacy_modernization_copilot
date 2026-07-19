@@ -52,7 +52,7 @@ interface MetricCardProps {
 export function MetricCard({ label, value, icon: Icon, accent, hint, animationDelayMs = 0 }: MetricCardProps) {
   return (
     <Card
-      className="animate-fade-in-up transition-shadow hover:shadow-md"
+      className="animate-fade-in-up transition-all hover:-translate-y-0.5 hover:shadow-md"
       style={{ animationDelay: `${animationDelayMs}ms` }}
     >
       <CardContent className="flex items-center gap-4 p-4">

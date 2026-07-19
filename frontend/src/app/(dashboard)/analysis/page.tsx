@@ -20,7 +20,7 @@ import {
   CloudRecommendationPanel,
   ModernizationScoreCard,
 } from '@/components/analysis';
-import { Button, EmptyState, EmptyProjectsIllustration } from '@/components/ui';
+import { Button, EmptyState, EmptyProjectsIllustration, CardGridSkeleton, PanelSkeleton, ErrorState } from '@/components/ui';
 import { computeMaintainability, computeCloudReadiness, computeOverallScore } from '@/lib/executive-summary';
 import { cn } from '@/utils';
 
@@ -31,7 +31,8 @@ export default function AnalysisPage() {
   const [projectsState, setProjectsState] = useState<LoadState>('loading');
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadProjects = () => {
+    setProjectsState('loading');
     projectService
       .list()
       .then((data) => {
@@ -40,7 +41,9 @@ export default function AnalysisPage() {
         if (data.length > 0) setSelectedProjectId(data[0].id);
       })
       .catch(() => setProjectsState('error'));
-  }, []);
+  };
+
+  useEffect(loadProjects, []);
 
   const analysis = useProjectFullAnalysis(selectedProjectId ?? '');
 
@@ -63,8 +66,8 @@ export default function AnalysisPage() {
         </p>
       </div>
 
-      {projectsState === 'loading' && <p className="text-sm text-muted-foreground">Loading projects...</p>}
-      {projectsState === 'error' && <p className="text-sm text-destructive">Failed to load projects</p>}
+      {projectsState === 'loading' && <CardGridSkeleton />}
+      {projectsState === 'error' && <ErrorState message="Failed to load projects" onRetry={loadProjects} />}
 
       {projectsState === 'loaded' && projects.length === 0 && (
         <EmptyState
@@ -103,9 +106,9 @@ export default function AnalysisPage() {
             ))}
           </div>
 
-          {analysis.state === 'loading' && <p className="text-sm text-muted-foreground">Loading analysis...</p>}
+          {analysis.state === 'loading' && <PanelSkeleton lines={4} />}
           {analysis.state === 'error' && (
-            <p className="text-sm text-destructive">Failed to load this project&apos;s analysis</p>
+            <ErrorState message="Failed to load this project's analysis" onRetry={analysis.reload} />
           )}
 
           {analysis.state === 'loaded' && (

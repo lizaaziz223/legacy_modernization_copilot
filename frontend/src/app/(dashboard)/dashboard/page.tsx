@@ -24,13 +24,13 @@ import {
   MigrationTimelineChart,
   ArchitectureHealthChart,
 } from '@/components/charts';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, Skeleton, ErrorState } from '@/components/ui';
 import { useDashboardAnalytics } from '@/hooks';
 import { formatBytes } from '@/utils';
 
 export default function DashboardPage() {
   const analytics = useDashboardAnalytics();
-  const { metrics, isLoading } = analytics;
+  const { metrics, isLoading, isError, reload } = analytics;
   const mostRecentProject = analytics.recentUploads[0] ?? null;
 
   const metricCards: { label: string; value: string; icon: typeof FolderKanban; accent: MetricAccent; hint?: string }[] = [
@@ -95,9 +95,17 @@ export default function DashboardPage() {
 
       <QuickActions mostRecentProject={mostRecentProject} />
 
-      {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading analytics...</p>
-      ) : (
+      {isError && <ErrorState message="Failed to load dashboard analytics" onRetry={reload} />}
+
+      {isLoading && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {Array.from({ length: 10 }).map((_, index) => (
+            <Skeleton key={index} className="h-24 w-full" />
+          ))}
+        </div>
+      )}
+
+      {!isLoading && !isError && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {metricCards.map((card, index) => (
             <MetricCard

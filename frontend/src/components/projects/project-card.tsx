@@ -5,13 +5,15 @@ import { formatBytes, formatDateTime } from '@/utils';
 
 interface ProjectCardProps {
   project: Project;
+  animationDelayMs?: number;
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, animationDelayMs = 0 }: ProjectCardProps) {
   return (
     <Link
       href={`/projects/${project.id}`}
-      className="group flex flex-col gap-3 rounded-lg border border-border bg-card p-4 no-underline transition-shadow hover:shadow-md"
+      className="group animate-fade-in-up flex flex-col gap-3 rounded-lg border border-border bg-card p-4 no-underline transition-all hover:-translate-y-0.5 hover:shadow-md"
+      style={{ animationDelay: `${animationDelayMs}ms` }}
     >
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-muted">

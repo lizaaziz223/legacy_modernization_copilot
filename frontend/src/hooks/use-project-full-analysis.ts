@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   projectService,
   businessAnalysisStatusService,
@@ -31,6 +31,8 @@ export interface ProjectFullAnalysis {
   security: SecurityAnalysisSummary | null;
   performance: PerformanceAnalysisSummary | null;
   plan: ModernizationPlan | null;
+  /** Re-runs the full fetch for the current projectId - use for a "Retry" button after `state === 'error'`. */
+  reload: () => void;
 }
 
 async function settle<T>(promise: Promise<T>): Promise<T | null> {
@@ -44,8 +46,8 @@ async function settle<T>(promise: Promise<T>): Promise<T | null> {
 /**
  * Fetches a single project plus every analysis stage that's been run for it
  * (tolerating stages that haven't run yet - their GET requests 404, which is
- * expected). Shared by the Executive Summary and Analysis pages, which both
- * need the same full picture of a project's analyses.
+ * expected). Shared by the Executive Summary, Analysis, and Reports pages,
+ * which all need the same full picture of a project's analyses.
  */
 export function useProjectFullAnalysis(projectId: string): ProjectFullAnalysis {
   const [state, setState] = useState<FullAnalysisLoadState>('loading');
@@ -56,6 +58,7 @@ export function useProjectFullAnalysis(projectId: string): ProjectFullAnalysis {
   const [security, setSecurity] = useState<SecurityAnalysisSummary | null>(null);
   const [performance, setPerformance] = useState<PerformanceAnalysisSummary | null>(null);
   const [plan, setPlan] = useState<ModernizationPlan | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     if (!projectId) return;
@@ -92,7 +95,9 @@ export function useProjectFullAnalysis(projectId: string): ProjectFullAnalysis {
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [projectId, reloadToken]);
 
-  return { state, project, business, technology, architecture, security, performance, plan };
+  const reload = useCallback(() => setReloadToken((token) => token + 1), []);
+
+  return { state, project, business, technology, architecture, security, performance, plan, reload };
 }

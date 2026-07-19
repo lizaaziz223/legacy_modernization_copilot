@@ -3,6 +3,7 @@
 import { Upload } from 'lucide-react';
 import { useProjectAnalysisStages, type AnalysisStage } from '@/hooks';
 import { Project } from '@/types';
+import { Skeleton } from '@/components/ui';
 import { formatDateTime } from '@/utils';
 
 interface ProjectTimelineProps {
@@ -13,7 +14,19 @@ export function ProjectTimeline({ project }: ProjectTimelineProps) {
   const stages = useProjectAnalysisStages(project.id);
 
   if (!stages) {
-    return <p className="text-sm text-muted-foreground">Loading timeline...</p>;
+    return (
+      <div className="flex flex-col gap-4">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="flex items-center gap-3">
+            <Skeleton className="h-6 w-6 shrink-0 rounded-full" />
+            <div className="flex flex-1 flex-col gap-1.5">
+              <Skeleton className="h-3.5 w-32" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   }
 
   const completedStages = stages

@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { isAxiosError } from 'axios';
+import { toast } from 'sonner';
 import { ScanSearch, Loader2, Network, Map, Download, ClipboardList } from 'lucide-react';
 import { ProjectSummaryCard } from '@/components/upload';
 import { TechnologyDetectionPanel } from '@/components/detection';
@@ -11,7 +12,7 @@ import { ArchitectureAnalysisPanel } from '@/components/architecture';
 import { ModernizationPlanPanel } from '@/components/planner';
 import { ProjectScorecardChart } from '@/components/charts';
 import { ProjectTimeline } from '@/components/projects';
-import { Button, EmptyState, EmptyAnalysisIllustration } from '@/components/ui';
+import { Button, EmptyState, EmptyAnalysisIllustration, PanelSkeleton, ErrorState, Progress, Skeleton } from '@/components/ui';
 import {
   projectService,
   technologyDetectionService,
@@ -50,7 +51,8 @@ export default function ProjectDetailPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadProject = useCallback(() => {
+    setProjectState('loading');
     projectService
       .get(id)
       .then((data) => {
@@ -58,6 +60,10 @@ export default function ProjectDetailPage() {
         setProjectState('loaded');
       })
       .catch(() => setProjectState('error'));
+  }, [id]);
+
+  useEffect(() => {
+    loadProject();
 
     technologyDetectionService
       .get(id)
@@ -83,7 +89,7 @@ export default function ProjectDetailPage() {
       .get(id)
       .then((result) => setPerformanceScore(result.performanceScore))
       .catch(() => setPerformanceScore(undefined));
-  }, [id]);
+  }, [id, loadProject]);
 
   const handleRunDetection = async () => {
     setIsDetecting(true);
@@ -91,9 +97,12 @@ export default function ProjectDetailPage() {
     try {
       const result = await technologyDetectionService.run(id);
       setDetection(result);
+      toast.success('Technology detection complete');
     } catch (error: unknown) {
       const message = isAxiosError<{ message?: string }>(error) ? error.response?.data?.message : undefined;
-      setDetectionError(message ?? 'Failed to run technology detection');
+      const finalMessage = message ?? 'Failed to run technology detection';
+      setDetectionError(finalMessage);
+      toast.error(finalMessage);
     } finally {
       setIsDetecting(false);
     }
@@ -105,9 +114,12 @@ export default function ProjectDetailPage() {
     try {
       const result = await architectureAnalysisService.run(id);
       setArchitecture(result);
+      toast.success('Architecture analysis complete');
     } catch (error: unknown) {
       const message = isAxiosError<{ message?: string }>(error) ? error.response?.data?.message : undefined;
-      setArchitectureError(message ?? 'Failed to run architecture analysis');
+      const finalMessage = message ?? 'Failed to run architecture analysis';
+      setArchitectureError(finalMessage);
+      toast.error(finalMessage);
     } finally {
       setIsAnalyzingArchitecture(false);
     }
@@ -119,9 +131,12 @@ export default function ProjectDetailPage() {
     try {
       const result = await modernizationPlanService.run(id);
       setPlan(result);
+      toast.success('Modernization roadmap generated');
     } catch (error: unknown) {
       const message = isAxiosError<{ message?: string }>(error) ? error.response?.data?.message : undefined;
-      setPlanError(message ?? 'Failed to generate modernization plan');
+      const finalMessage = message ?? 'Failed to generate modernization plan';
+      setPlanError(finalMessage);
+      toast.error(finalMessage);
     } finally {
       setIsPlanning(false);
     }
@@ -133,20 +148,32 @@ export default function ProjectDetailPage() {
     try {
       const blob = await modernizationReportService.downloadPdf(id);
       triggerBlobDownload(blob, `${project?.name ?? 'project'}-modernization-report.pdf`);
+      toast.success('Report downloaded');
     } catch (error: unknown) {
       const message = isAxiosError<{ message?: string }>(error) ? error.response?.data?.message : undefined;
-      setDownloadError(message ?? 'Failed to download report');
+      const finalMessage = message ?? 'Failed to download report';
+      setDownloadError(finalMessage);
+      toast.error(finalMessage);
     } finally {
       setIsDownloading(false);
     }
   };
 
   if (projectState === 'loading') {
-    return <p className="text-sm text-muted-foreground">Loading project...</p>;
+    return (
+      <div className="flex flex-col gap-6">
+        <Skeleton className="h-8 w-64" />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <PanelSkeleton />
+          <PanelSkeleton />
+        </div>
+        <PanelSkeleton />
+      </div>
+    );
   }
 
   if (projectState === 'error' || !project) {
-    return <p className="text-sm text-destructive">Failed to load project</p>;
+    return <ErrorState message="Failed to load project" onRetry={loadProject} />;
   }
 
   return (
@@ -220,6 +247,11 @@ export default function ProjectDetailPage() {
         <div className="mt-4">
           {detection ? (
             <TechnologyDetectionPanel result={detection} />
+          ) : isDetecting ? (
+            <div className="flex flex-col gap-3">
+              <Progress indeterminate />
+              <PanelSkeleton />
+            </div>
           ) : (
             <EmptyState
               illustration={<EmptyAnalysisIllustration />}
@@ -256,6 +288,11 @@ export default function ProjectDetailPage() {
         <div className="mt-4">
           {architecture ? (
             <ArchitectureAnalysisPanel result={architecture} />
+          ) : isAnalyzingArchitecture ? (
+            <div className="flex flex-col gap-3">
+              <Progress indeterminate />
+              <PanelSkeleton />
+            </div>
           ) : (
             <EmptyState
               illustration={<EmptyAnalysisIllustration />}
@@ -292,6 +329,11 @@ export default function ProjectDetailPage() {
         <div className="mt-4">
           {plan ? (
             <ModernizationPlanPanel plan={plan} />
+          ) : isPlanning ? (
+            <div className="flex flex-col gap-3">
+              <Progress indeterminate />
+              <PanelSkeleton />
+            </div>
           ) : (
             <EmptyState
               illustration={<EmptyAnalysisIllustration />}

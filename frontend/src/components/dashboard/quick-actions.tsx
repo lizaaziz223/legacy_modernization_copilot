@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { Upload, ScanSearch, ClipboardList, Download, Loader2 } from 'lucide-react';
 import { modernizationReportService } from '@/services';
 import { triggerBlobDownload } from '@/utils';
@@ -26,9 +27,9 @@ export function QuickActions({ mostRecentProject }: QuickActionsProps) {
     try {
       const blob = await modernizationReportService.downloadPdf(mostRecentProject.id);
       triggerBlobDownload(blob, `${mostRecentProject.name}-modernization-report.pdf`);
+      toast.success('Report downloaded');
     } catch {
-      // Dashboard-level shortcut with no dedicated error surface; the full
-      // project page's own "Download PDF Report" action reports errors inline.
+      toast.error('Failed to download report');
     } finally {
       setIsDownloading(false);
     }

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { isAxiosError } from 'axios';
+import { toast } from 'sonner';
 import { CheckCircle2 } from 'lucide-react';
 import {
   ProjectDropzone,
@@ -66,19 +67,25 @@ export default function UploadPage() {
       setProject(uploaded);
       setState('success');
       setExistingProjects((prev) => [uploaded, ...prev]);
+      toast.success('Project uploaded successfully');
 
       setIsDetecting(true);
       technologyDetectionService
         .run(uploaded.id)
         .then(setTechnology)
-        .catch(() => setTechnology(null))
+        .catch(() => {
+          setTechnology(null);
+          toast.error('Technology detection failed to start automatically. You can run it from the project page.');
+        })
         .finally(() => setIsDetecting(false));
     } catch (uploadError: unknown) {
       const message = isAxiosError<{ message?: string }>(uploadError)
         ? uploadError.response?.data?.message
         : undefined;
-      setError(message ?? 'Failed to upload project');
+      const finalMessage = message ?? 'Failed to upload project';
+      setError(finalMessage);
       setState('error');
+      toast.error(finalMessage);
     }
   };
 

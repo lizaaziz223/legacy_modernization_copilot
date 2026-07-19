@@ -238,6 +238,19 @@
     background-image: radial-gradient(hsl(var(--border)) 1px, transparent 1px);
     background-size: 24px 24px;
   }
+
+  @keyframes progress-indeterminate {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(300%);
+    }
+  }
+
+  .animate-progress-indeterminate {
+    animation: progress-indeterminate 1.2s ease-in-out infinite;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -245,7 +258,8 @@
   .animate-upload-bounce,
   .animate-pop-in,
   .animate-fade-in,
-  .animate-float {
+  .animate-float,
+  .animate-progress-indeterminate {
     animation: none;
   }
 

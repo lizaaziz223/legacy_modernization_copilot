@@ -39,6 +39,7 @@
     "react-flow-renderer": "^10.3.17",
     "react-hook-form": "^7.48.0",
     "recharts": "^2.10.3",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^2.2.1",
     "typescript": "^5.3.3",
     "use-query-params": "^2.2.1",

@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { scoreAccent } from '@/components/dashboard';
 import { ScoreCard, InfoCard, RiskList, RecommendationList } from '@/components/executive-summary';
-import { Card, CardHeader, CardTitle, CardContent, Progress } from '@/components/ui';
+import { Card, CardHeader, CardTitle, CardContent, Progress, PanelSkeleton, ErrorState } from '@/components/ui';
 import { useProjectFullAnalysis } from '@/hooks';
 import {
   computeMaintainability,
@@ -34,15 +34,25 @@ import {
 
 export default function ExecutiveSummaryPage() {
   const { id } = useParams<{ id: string }>();
-  const { state, project, business, technology, architecture, security, performance, plan } =
+  const { state, project, business, technology, architecture, security, performance, plan, reload } =
     useProjectFullAnalysis(id);
 
   if (state === 'loading') {
-    return <p className="text-sm text-muted-foreground">Loading executive summary...</p>;
+    return (
+      <div className="flex flex-col gap-4">
+        <PanelSkeleton lines={2} />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <PanelSkeleton lines={2} />
+          <PanelSkeleton lines={2} />
+          <PanelSkeleton lines={2} />
+          <PanelSkeleton lines={2} />
+        </div>
+      </div>
+    );
   }
 
   if (state === 'error' || !project) {
-    return <p className="text-sm text-destructive">Failed to load this project&apos;s executive summary.</p>;
+    return <ErrorState message="Failed to load this project's executive summary" onRetry={reload} />;
   }
 
   const securityScore = security ? 100 - security.overallRiskScore : null;

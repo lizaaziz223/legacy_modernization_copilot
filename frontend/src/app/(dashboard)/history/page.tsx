@@ -6,7 +6,7 @@ import { Upload } from 'lucide-react';
 import { projectService } from '@/services';
 import { Project } from '@/types';
 import { ProjectCard } from '@/components/projects';
-import { Button, EmptyState, EmptyProjectsIllustration } from '@/components/ui';
+import { Button, EmptyState, EmptyProjectsIllustration, CardGridSkeleton, ErrorState } from '@/components/ui';
 
 type LoadState = 'loading' | 'loaded' | 'error';
 
@@ -14,7 +14,8 @@ export default function HistoryPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [state, setState] = useState<LoadState>('loading');
 
-  useEffect(() => {
+  const loadProjects = () => {
+    setState('loading');
     projectService
       .list()
       .then((data) => {
@@ -22,7 +23,9 @@ export default function HistoryPage() {
         setState('loaded');
       })
       .catch(() => setState('error'));
-  }, []);
+  };
+
+  useEffect(loadProjects, []);
 
   return (
     <div className="flex flex-col gap-6">
@@ -31,8 +34,8 @@ export default function HistoryPage() {
         <p className="mt-1 text-sm text-muted-foreground">Projects you&apos;ve previously uploaded</p>
       </div>
 
-      {state === 'loading' && <p className="text-sm text-muted-foreground">Loading projects...</p>}
-      {state === 'error' && <p className="text-sm text-destructive">Failed to load project history</p>}
+      {state === 'loading' && <CardGridSkeleton />}
+      {state === 'error' && <ErrorState message="Failed to load project history" onRetry={loadProjects} />}
 
       {state === 'loaded' && projects.length === 0 && (
         <EmptyState
@@ -52,8 +55,8 @@ export default function HistoryPage() {
 
       {state === 'loaded' && projects.length > 0 && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+          {projects.map((project, index) => (
+            <ProjectCard key={project.id} project={project} animationDelayMs={index * 50} />
           ))}
         </div>
       )}

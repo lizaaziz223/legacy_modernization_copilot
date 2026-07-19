@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   projectService,
   technologyDetectionService,
@@ -42,6 +42,8 @@ interface RecentActivityEntry {
 
 export interface DashboardAnalytics {
   isLoading: boolean;
+  isError: boolean;
+  reload: () => void;
   projects: Project[];
   analyses: ProjectAnalyses[];
   metrics: {
@@ -133,10 +135,14 @@ async function loadProjectAnalyses(project: Project): Promise<ProjectAnalyses> {
  */
 export function useDashboardAnalytics(): DashboardAnalytics {
   const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
   const [analyses, setAnalyses] = useState<ProjectAnalyses[]>([]);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    setIsLoading(true);
+    setIsError(false);
 
     projectService
       .list()
@@ -149,6 +155,7 @@ export function useDashboardAnalytics(): DashboardAnalytics {
       .catch(() => {
         if (!cancelled) {
           setAnalyses([]);
+          setIsError(true);
         }
       })
       .finally(() => {
@@ -160,7 +167,9 @@ export function useDashboardAnalytics(): DashboardAnalytics {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadToken]);
+
+  const reload = useCallback(() => setReloadToken((token) => token + 1), []);
 
   const projects = analyses.map((entry) => entry.project);
   const totalFiles = projects.reduce((sum, project) => sum + project.totalFiles, 0);
@@ -268,6 +277,8 @@ export function useDashboardAnalytics(): DashboardAnalytics {
 
   return {
     isLoading,
+    isError,
+    reload,
     projects,
     analyses,
     metrics: {

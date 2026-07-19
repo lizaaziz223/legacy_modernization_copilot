@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import {
   Sparkles,
   Network,
@@ -42,6 +43,9 @@ import {
   EmptyState,
   EmptyProjectsIllustration,
   EmptyReportIllustration,
+  CardGridSkeleton,
+  PanelSkeleton,
+  ErrorState,
 } from '@/components/ui';
 import {
   computeMaintainability,
@@ -63,7 +67,8 @@ export default function ReportsPage() {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadProjects = () => {
+    setProjectsState('loading');
     projectService
       .list()
       .then((data) => {
@@ -72,7 +77,9 @@ export default function ReportsPage() {
         if (data.length > 0) setSelectedProjectId(data[0].id);
       })
       .catch(() => setProjectsState('error'));
-  }, []);
+  };
+
+  useEffect(loadProjects, []);
 
   const analysis = useProjectFullAnalysis(selectedProjectId ?? '');
   const { project, business, technology, architecture, security, performance, plan } = analysis;
@@ -118,8 +125,11 @@ export default function ReportsPage() {
         generatedAt: new Date(),
       });
       triggerBlobDownload(blob, `${project.name}-modernization-report.pdf`);
+      toast.success('Report PDF downloaded');
     } catch {
-      setPdfError('Failed to generate PDF. Please try again.');
+      const finalMessage = 'Failed to generate PDF. Please try again.';
+      setPdfError(finalMessage);
+      toast.error(finalMessage);
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -135,8 +145,8 @@ export default function ReportsPage() {
         </p>
       </div>
 
-      {projectsState === 'loading' && <p className="text-sm text-muted-foreground">Loading projects...</p>}
-      {projectsState === 'error' && <p className="text-sm text-destructive">Failed to load projects</p>}
+      {projectsState === 'loading' && <CardGridSkeleton />}
+      {projectsState === 'error' && <ErrorState message="Failed to load projects" onRetry={loadProjects} />}
 
       {projectsState === 'loaded' && projects.length === 0 && (
         <EmptyState
@@ -175,9 +185,9 @@ export default function ReportsPage() {
             ))}
           </div>
 
-          {analysis.state === 'loading' && <p className="text-sm text-muted-foreground">Loading report...</p>}
+          {analysis.state === 'loading' && <PanelSkeleton lines={4} />}
           {analysis.state === 'error' && (
-            <p className="text-sm text-destructive">Failed to load this project&apos;s report</p>
+            <ErrorState message="Failed to load this project's report" onRetry={analysis.reload} />
           )}
 
           {analysis.state === 'loaded' && project && !hasAnyAnalysis && (
