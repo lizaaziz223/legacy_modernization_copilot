@@ -1,7 +1,13 @@
 spring:
   data:
     mongodb:
-      uri: mongodb+srv://${MONGODB_USER}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}/?retryWrites=true&w=majority
+      # Direct seed-list URI (no mongodb+srv). Northflank's egress appears to hang/drop the
+      # SRV+TXT DNS lookups mongodb+srv:// requires during MongoClient construction, which
+      # blocks Tomcat's bind indefinitely (Tomcat start is gated behind all singleton beans).
+      # MONGODB_HOSTS/MONGODB_REPLICA_SET default to this cluster's current shard members
+      # (resolved via `nslookup -type=SRV`/`-type=TXT` on cluster0.le8yrdn.mongodb.net) -
+      # override via env if Atlas ever rotates them.
+      uri: mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@${MONGODB_HOSTS:ac-bzevybn-shard-00-00.le8yrdn.mongodb.net:27017,ac-bzevybn-shard-00-01.le8yrdn.mongodb.net:27017,ac-bzevybn-shard-00-02.le8yrdn.mongodb.net:27017}/?ssl=true&replicaSet=${MONGODB_REPLICA_SET:atlas-q4gspl-shard-0}&authSource=admin&retryWrites=true&w=majority
       auto-index-creation: false
 
 logging:
