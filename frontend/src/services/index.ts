@@ -20,6 +20,7 @@ import {
   ArchitectureAnalysisResult,
   ModernizationPlan,
   AnalysisRecord,
+  BusinessAnalysisResult,
   SecurityAnalysisSummary,
   PerformanceAnalysisSummary,
 } from '@/types';
@@ -163,8 +164,8 @@ export const modernizationPlanService = {
  * the project timeline needs to know whether/when each has run.
  */
 export const businessAnalysisStatusService = {
-  get: async (projectId: string): Promise<AnalysisRecord> => {
-    const response = await apiClient.get<ApiResponse<AnalysisRecord>>(API_ENDPOINTS.BUSINESS_ANALYSIS(projectId));
+  get: async (projectId: string): Promise<BusinessAnalysisResult> => {
+    const response = await apiClient.get<ApiResponse<BusinessAnalysisResult>>(API_ENDPOINTS.BUSINESS_ANALYSIS(projectId));
     return response.data.data;
   },
 };

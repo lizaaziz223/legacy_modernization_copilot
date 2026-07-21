@@ -50,7 +50,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
   return (
     <>
-      <aside className="hidden w-60 shrink-0 border-r border-border bg-card md:block">{navLinks}</aside>
+      <aside className="hidden w-60 shrink-0 border-r border-border bg-card md:block print:hidden">{navLinks}</aside>
 
       {isOpen && (
         <div className="fixed inset-0 z-40 md:hidden">

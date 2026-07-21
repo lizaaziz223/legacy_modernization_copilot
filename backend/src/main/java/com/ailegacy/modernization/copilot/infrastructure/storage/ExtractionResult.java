@@ -10,6 +10,7 @@ public record ExtractionResult(
         String storagePath,
         String originalZipPath,
         long totalFiles,
+        long totalFolders,
         long totalSizeBytes,
         Map<String, Long> fileExtensionBreakdown
 ) {

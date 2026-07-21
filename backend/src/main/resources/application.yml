@@ -105,7 +105,9 @@ app:
   output-directory: ${OUTPUT_DIR:${java.io.tmpdir}/ai-legacy-copilot/output}
   frontend-url: ${FRONTEND_URL:}
   project:
-    supported-extensions: java,jsp,xml,properties,sql,yaml,yml,cbl,jcl
+    # gradle/kts/mf/class added for technology detection: Gradle build files, JAR/WAR
+    # manifests, and compiled bytecode are all inference sources for version detection.
+    supported-extensions: java,jsp,xml,properties,sql,yaml,yml,cbl,jcl,gradle,kts,mf,class
     max-extracted-size-mb: ${MAX_EXTRACTED_SIZE_MB:2000}
   ai:
     max-digest-chars: ${AI_MAX_DIGEST_CHARS:60000}

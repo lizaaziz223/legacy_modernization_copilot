@@ -1,15 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { isAxiosError } from 'axios';
-import { ScanSearch, Loader2, Network, Map, Download } from 'lucide-react';
+import { toast } from 'sonner';
+import { ScanSearch, Loader2, Network, Map, Download, ClipboardList } from 'lucide-react';
 import { ProjectSummaryCard } from '@/components/upload';
 import { TechnologyDetectionPanel } from '@/components/detection';
 import { ArchitectureAnalysisPanel } from '@/components/architecture';
 import { ModernizationPlanPanel } from '@/components/planner';
 import { ProjectScorecardChart } from '@/components/charts';
 import { ProjectTimeline } from '@/components/projects';
+import { Button, EmptyState, EmptyAnalysisIllustration, PanelSkeleton, ErrorState, Progress, Skeleton } from '@/components/ui';
 import {
   projectService,
   technologyDetectionService,
@@ -48,7 +51,8 @@ export default function ProjectDetailPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadProject = useCallback(() => {
+    setProjectState('loading');
     projectService
       .get(id)
       .then((data) => {
@@ -56,6 +60,10 @@ export default function ProjectDetailPage() {
         setProjectState('loaded');
       })
       .catch(() => setProjectState('error'));
+  }, [id]);
+
+  useEffect(() => {
+    loadProject();
 
     technologyDetectionService
       .get(id)
@@ -81,7 +89,7 @@ export default function ProjectDetailPage() {
       .get(id)
       .then((result) => setPerformanceScore(result.performanceScore))
       .catch(() => setPerformanceScore(undefined));
-  }, [id]);
+  }, [id, loadProject]);
 
   const handleRunDetection = async () => {
     setIsDetecting(true);
@@ -89,9 +97,12 @@ export default function ProjectDetailPage() {
     try {
       const result = await technologyDetectionService.run(id);
       setDetection(result);
+      toast.success('Technology detection complete');
     } catch (error: unknown) {
       const message = isAxiosError<{ message?: string }>(error) ? error.response?.data?.message : undefined;
-      setDetectionError(message ?? 'Failed to run technology detection');
+      const finalMessage = message ?? 'Failed to run technology detection';
+      setDetectionError(finalMessage);
+      toast.error(finalMessage);
     } finally {
       setIsDetecting(false);
     }
@@ -103,9 +114,12 @@ export default function ProjectDetailPage() {
     try {
       const result = await architectureAnalysisService.run(id);
       setArchitecture(result);
+      toast.success('Architecture analysis complete');
     } catch (error: unknown) {
       const message = isAxiosError<{ message?: string }>(error) ? error.response?.data?.message : undefined;
-      setArchitectureError(message ?? 'Failed to run architecture analysis');
+      const finalMessage = message ?? 'Failed to run architecture analysis';
+      setArchitectureError(finalMessage);
+      toast.error(finalMessage);
     } finally {
       setIsAnalyzingArchitecture(false);
     }
@@ -117,9 +131,12 @@ export default function ProjectDetailPage() {
     try {
       const result = await modernizationPlanService.run(id);
       setPlan(result);
+      toast.success('Modernization roadmap generated');
     } catch (error: unknown) {
       const message = isAxiosError<{ message?: string }>(error) ? error.response?.data?.message : undefined;
-      setPlanError(message ?? 'Failed to generate modernization plan');
+      const finalMessage = message ?? 'Failed to generate modernization plan';
+      setPlanError(finalMessage);
+      toast.error(finalMessage);
     } finally {
       setIsPlanning(false);
     }
@@ -131,20 +148,32 @@ export default function ProjectDetailPage() {
     try {
       const blob = await modernizationReportService.downloadPdf(id);
       triggerBlobDownload(blob, `${project?.name ?? 'project'}-modernization-report.pdf`);
+      toast.success('Report downloaded');
     } catch (error: unknown) {
       const message = isAxiosError<{ message?: string }>(error) ? error.response?.data?.message : undefined;
-      setDownloadError(message ?? 'Failed to download report');
+      const finalMessage = message ?? 'Failed to download report';
+      setDownloadError(finalMessage);
+      toast.error(finalMessage);
     } finally {
       setIsDownloading(false);
     }
   };
 
   if (projectState === 'loading') {
-    return <p className="text-sm text-muted-foreground">Loading project...</p>;
+    return (
+      <div className="flex flex-col gap-6">
+        <Skeleton className="h-8 w-64" />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <PanelSkeleton />
+          <PanelSkeleton />
+        </div>
+        <PanelSkeleton />
+      </div>
+    );
   }
 
   if (projectState === 'error' || !project) {
-    return <p className="text-sm text-destructive">Failed to load project</p>;
+    return <ErrorState message="Failed to load project" onRetry={loadProject} />;
   }
 
   return (
@@ -154,22 +183,31 @@ export default function ProjectDetailPage() {
           <h1 className="text-2xl font-semibold">{project.name}</h1>
           <p className="mt-1 text-sm text-muted-foreground">Project details and analysis</p>
         </div>
-        <div>
-          <button
-            type="button"
-            onClick={handleDownloadReport}
-            disabled={isDownloading}
-            className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
+        <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-start">
+          <Link
+            href={`/projects/${id}/executive-summary`}
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground no-underline hover:opacity-90"
           >
-            {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            {isDownloading ? 'Preparing PDF...' : 'Download PDF Report'}
-          </button>
-          {downloadError && <p className="mt-1 text-sm text-destructive">{downloadError}</p>}
+            <ClipboardList className="h-4 w-4" />
+            Executive Summary
+          </Link>
+          <div>
+            <button
+              type="button"
+              onClick={handleDownloadReport}
+              disabled={isDownloading}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
+            >
+              {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              {isDownloading ? 'Preparing PDF...' : 'Download PDF Report'}
+            </button>
+            {downloadError && <p className="mt-1 text-sm text-destructive">{downloadError}</p>}
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <ProjectSummaryCard project={project} />
+        <ProjectSummaryCard project={project} technology={detection} isDetecting={isDetecting} />
         <div className="rounded-lg border border-border bg-card p-6">
           <h3 className="font-semibold">Scorecard</h3>
           <div className="mt-2">
@@ -190,85 +228,124 @@ export default function ProjectDetailPage() {
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold">Technology Detection</h2>
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleRunDetection}
-            disabled={isDetecting}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-          >
-            {isDetecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanSearch className="h-4 w-4" />}
-            {isDetecting ? 'Detecting...' : detection ? 'Re-run Technology Detection' : 'Run Technology Detection'}
-          </button>
-          {detectionError && <p className="text-sm text-destructive">{detectionError}</p>}
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Technology Detection</h2>
+          {detection && (
+            <button
+              type="button"
+              onClick={handleRunDetection}
+              disabled={isDetecting}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted disabled:opacity-50"
+            >
+              {isDetecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanSearch className="h-4 w-4" />}
+              {isDetecting ? 'Detecting...' : 'Re-run Technology Detection'}
+            </button>
+          )}
         </div>
+        {detectionError && <p className="mt-2 text-sm text-destructive">{detectionError}</p>}
 
         <div className="mt-4">
           {detection ? (
             <TechnologyDetectionPanel result={detection} />
+          ) : isDetecting ? (
+            <div className="flex flex-col gap-3">
+              <Progress indeterminate />
+              <PanelSkeleton />
+            </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              This project hasn&apos;t been analyzed yet. Run technology detection to see results.
-            </p>
+            <EmptyState
+              illustration={<EmptyAnalysisIllustration />}
+              title="No technology detection yet"
+              description="Identify legacy frameworks, build tools, application servers, and databases used in this codebase."
+              action={
+                <Button onClick={handleRunDetection} disabled={isDetecting}>
+                  {isDetecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanSearch className="h-4 w-4" />}
+                  {isDetecting ? 'Detecting...' : 'Run Analysis'}
+                </Button>
+              }
+            />
           )}
         </div>
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold">Architecture Analysis</h2>
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleRunArchitectureAnalysis}
-            disabled={isAnalyzingArchitecture}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-          >
-            {isAnalyzingArchitecture ? <Loader2 className="h-4 w-4 animate-spin" /> : <Network className="h-4 w-4" />}
-            {isAnalyzingArchitecture
-              ? 'Analyzing...'
-              : architecture
-                ? 'Re-run Architecture Analysis'
-                : 'Run Architecture Analysis'}
-          </button>
-          {architectureError && <p className="text-sm text-destructive">{architectureError}</p>}
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Architecture Analysis</h2>
+          {architecture && (
+            <button
+              type="button"
+              onClick={handleRunArchitectureAnalysis}
+              disabled={isAnalyzingArchitecture}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted disabled:opacity-50"
+            >
+              {isAnalyzingArchitecture ? <Loader2 className="h-4 w-4 animate-spin" /> : <Network className="h-4 w-4" />}
+              {isAnalyzingArchitecture ? 'Analyzing...' : 'Re-run Architecture Analysis'}
+            </button>
+          )}
         </div>
+        {architectureError && <p className="mt-2 text-sm text-destructive">{architectureError}</p>}
 
         <div className="mt-4">
           {architecture ? (
             <ArchitectureAnalysisPanel result={architecture} />
+          ) : isAnalyzingArchitecture ? (
+            <div className="flex flex-col gap-3">
+              <Progress indeterminate />
+              <PanelSkeleton />
+            </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              This project hasn&apos;t had an architecture analysis yet. Run it to see the current and target
-              architecture diagrams.
-            </p>
+            <EmptyState
+              illustration={<EmptyAnalysisIllustration />}
+              title="No architecture analysis yet"
+              description="See this project's current architecture pattern and an AI-generated target architecture with a migration path."
+              action={
+                <Button onClick={handleRunArchitectureAnalysis} disabled={isAnalyzingArchitecture}>
+                  {isAnalyzingArchitecture ? <Loader2 className="h-4 w-4 animate-spin" /> : <Network className="h-4 w-4" />}
+                  {isAnalyzingArchitecture ? 'Analyzing...' : 'Run Analysis'}
+                </Button>
+              }
+            />
           )}
         </div>
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold">Modernization Roadmap</h2>
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleGeneratePlan}
-            disabled={isPlanning}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-          >
-            {isPlanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Map className="h-4 w-4" />}
-            {isPlanning ? 'Generating...' : plan ? 'Regenerate Roadmap' : 'Generate Modernization Roadmap'}
-          </button>
-          {planError && <p className="text-sm text-destructive">{planError}</p>}
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Modernization Roadmap</h2>
+          {plan && (
+            <button
+              type="button"
+              onClick={handleGeneratePlan}
+              disabled={isPlanning}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted disabled:opacity-50"
+            >
+              {isPlanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Map className="h-4 w-4" />}
+              {isPlanning ? 'Generating...' : 'Regenerate Roadmap'}
+            </button>
+          )}
         </div>
+        {planError && <p className="mt-2 text-sm text-destructive">{planError}</p>}
 
         <div className="mt-4">
           {plan ? (
             <ModernizationPlanPanel plan={plan} />
+          ) : isPlanning ? (
+            <div className="flex flex-col gap-3">
+              <Progress indeterminate />
+              <PanelSkeleton />
+            </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No modernization roadmap yet. Generating one works best after running the other analyses above,
-              but isn&apos;t required.
-            </p>
+            <EmptyState
+              illustration={<EmptyAnalysisIllustration />}
+              title="No modernization roadmap yet"
+              description="Generate a prioritized migration strategy, complexity scoring, quick wins, and a risk-ranked roadmap. Works best after running the analyses above, but isn't required."
+              action={
+                <Button onClick={handleGeneratePlan} disabled={isPlanning}>
+                  {isPlanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Map className="h-4 w-4" />}
+                  {isPlanning ? 'Generating...' : 'Generate Roadmap'}
+                </Button>
+              }
+            />
           )}
         </div>
       </div>

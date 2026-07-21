@@ -1,5 +1,6 @@
 package com.ailegacy.modernization.copilot.infrastructure.analysis;
 
+import com.ailegacy.modernization.copilot.domain.entities.DetectedAttribute;
 import com.ailegacy.modernization.copilot.domain.entities.DetectedTechnology;
 import com.ailegacy.modernization.copilot.domain.entities.TechnologyDetectionResult;
 import com.ailegacy.modernization.copilot.domain.enums.TechnologyType;
@@ -29,13 +30,24 @@ class TechnologyDetectionEngineTest {
 
     @BeforeEach
     void setUp() {
+        ClassFileVersionReader classFileVersionReader = new ClassFileVersionReader();
         engine = new TechnologyDetectionEngine(
                 new ProjectFileScanner(),
                 new TechnologyRuleCatalog(),
-                new JavaVersionDetector(),
+                new JavaVersionDetector(classFileVersionReader),
+                new JdkVersionDetector(classFileVersionReader),
                 new DatabaseDetector(),
                 new BuildToolDetector(),
-                new ApplicationServerDetector()
+                new ApplicationServerDetector(),
+                new MavenVersionDetector(),
+                new GradleVersionDetector(),
+                new SpringVersionDetector(),
+                new SpringBootVersionDetector(),
+                new ServletVersionDetector(),
+                new JspVersionDetector(),
+                new HibernateVersionDetector(),
+                new PackagingDetector(),
+                new ConfigurationStyleDetector()
         );
     }
 
@@ -58,10 +70,10 @@ class TechnologyDetectionEngineTest {
         byType.values().forEach(detected -> assertThat(detected.getConfidenceScore()).isEqualTo(100));
         byType.values().forEach(detected -> assertThat(detected.getEvidence()).isNotEmpty());
 
-        assertThat(result.getJavaVersion()).isEqualTo("17");
-        assertThat(result.getDatabases()).contains("MySQL");
-        assertThat(result.getBuildTool()).isEqualTo("Maven");
-        assertThat(result.getApplicationServer()).isEqualTo("Apache Tomcat");
+        assertThat(result.getJavaVersion().getValue()).isEqualTo("17");
+        assertThat(result.getDatabases()).extracting(DetectedAttribute::getValue).contains("MySQL");
+        assertThat(result.getBuildTool().getValue()).isEqualTo("Maven");
+        assertThat(result.getApplicationServer().getValue()).isEqualTo("Apache Tomcat");
     }
 
     @Test
@@ -69,10 +81,10 @@ class TechnologyDetectionEngineTest {
         TechnologyDetectionResult result = engine.detect("empty-project", projectDir.toString());
 
         assertThat(result.getDetectedTechnologies()).isEmpty();
-        assertThat(result.getJavaVersion()).isEqualTo("Unknown");
+        assertThat(result.getJavaVersion().getValue()).isEqualTo("Unknown");
         assertThat(result.getDatabases()).isEmpty();
-        assertThat(result.getBuildTool()).isEqualTo("Unknown");
-        assertThat(result.getApplicationServer()).isEqualTo("Unknown");
+        assertThat(result.getBuildTool().getValue()).isEqualTo("Unknown");
+        assertThat(result.getApplicationServer().getValue()).isEqualTo("Unknown");
     }
 
     private void writeFixtureProject(Path root) throws IOException {

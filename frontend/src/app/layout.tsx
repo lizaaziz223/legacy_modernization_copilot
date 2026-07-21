@@ -5,7 +5,7 @@ import '@/styles/globals.css';
 
 export const metadata: Metadata = {
   title: 'AI Legacy Modernization Copilot',
-  description: 'Analyze and modernize legacy enterprise applications with AI',
+  description: 'AI-powered platform for analyzing, assessing and modernizing enterprise legacy applications.',
   viewport: 'width=device-width, initial-scale=1',
   robots: 'index, follow',
 };

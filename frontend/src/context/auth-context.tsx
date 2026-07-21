@@ -6,6 +6,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { toast } from 'sonner';
 import { User, Role } from '@/types';
 import { authService } from '@/services';
 import { getAuthToken, removeAuthToken, setAuthTokens } from '@/utils/auth';
@@ -74,6 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       removeAuthToken();
       setUser(null);
       setIsLoading(false);
+      toast.success('Signed out');
     }
   }, []);
 

@@ -7,6 +7,7 @@ export interface Project {
   name: string;
   originalFileName: string;
   totalFiles: number;
+  totalFolders: number;
   totalSizeBytes: number;
   fileExtensionBreakdown: Record<string, number>;
   createdAt: string;
@@ -20,12 +21,60 @@ export interface AnalysisRecord {
   createdAt: string;
 }
 
+export type SeverityLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+export interface SecurityFinding {
+  issueType: string;
+  title: string;
+  description: string;
+  severity: SeverityLevel;
+  riskScore: number;
+  location: string;
+  recommendation: string;
+  modernAlternative: string;
+  evidence: string[];
+}
+
+export interface PerformanceFinding {
+  issueType: string;
+  title: string;
+  description: string;
+  location: string;
+  optimizationSuggestion: string;
+  modernAlternative: string;
+  evidence: string[];
+}
+
 export interface SecurityAnalysisSummary extends AnalysisRecord {
   overallRiskScore: number;
+  findings: SecurityFinding[];
+  filesAnalyzed: number;
+  totalProjectFiles: number;
 }
 
 export interface PerformanceAnalysisSummary extends AnalysisRecord {
   performanceScore: number;
+  performanceScoreJustification: string;
+  findings: PerformanceFinding[];
+  filesAnalyzed: number;
+  totalProjectFiles: number;
+}
+
+export interface ModuleSummary {
+  moduleName: string;
+  description: string;
+}
+
+export interface BusinessAnalysisResult extends AnalysisRecord {
+  businessPurpose: string;
+  mainModules: string[];
+  criticalWorkflows: string[];
+  coreEntities: string[];
+  executiveSummary: string;
+  businessSummary: string;
+  moduleSummary: ModuleSummary[];
+  filesAnalyzed: number;
+  totalProjectFiles: number;
 }
 
 export interface Scan {
@@ -83,14 +132,35 @@ export interface DetectedTechnology {
   evidence: string[];
 }
 
+/**
+ * A single detected project attribute (a version, a build tool, a packaging
+ * style, ...) together with a confidence score and the evidence that
+ * produced it.
+ */
+export interface DetectedAttribute {
+  value: string;
+  confidenceScore: number;
+  evidence: string[];
+}
+
 export interface TechnologyDetectionResult {
   id: string;
   projectId: string;
   detectedTechnologies: DetectedTechnology[];
-  javaVersion: string;
-  databases: string[];
-  buildTool: string;
-  applicationServer: string;
+  javaVersion: DetectedAttribute;
+  jdkVersion: DetectedAttribute;
+  buildTool: DetectedAttribute;
+  mavenVersion: DetectedAttribute;
+  gradleVersion: DetectedAttribute;
+  springVersion: DetectedAttribute;
+  springBootVersion: DetectedAttribute;
+  servletVersion: DetectedAttribute;
+  jspVersion: DetectedAttribute;
+  hibernateVersion: DetectedAttribute;
+  applicationServer: DetectedAttribute;
+  packaging: DetectedAttribute;
+  configurationStyles: DetectedAttribute[];
+  databases: DetectedAttribute[];
   createdAt: string;
 }
 
