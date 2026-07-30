@@ -2,6 +2,10 @@ const nextConfig = {
   output: 'standalone',
   reactStrictMode: true,
   swcMinify: true,
+  // Temporary: lets the browser console show real file/line for production
+  // errors instead of "Minified React error #N". Remove once the current
+  // React error #31 investigation is resolved.
+  productionBrowserSourceMaps: true,
   images: {
     remotePatterns: [
       {

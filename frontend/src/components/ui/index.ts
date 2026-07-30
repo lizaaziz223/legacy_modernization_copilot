@@ -17,3 +17,4 @@ export { EmptyProjectsIllustration, EmptyAnalysisIllustration, EmptyReportIllust
 export { Skeleton } from './skeleton';
 export { CardGridSkeleton, PanelSkeleton } from './skeleton-patterns';
 export { ErrorState } from './error-state';
+export { DebugErrorBoundary } from './debug-error-boundary';

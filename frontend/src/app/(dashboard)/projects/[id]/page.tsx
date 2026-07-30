@@ -12,7 +12,7 @@ import { ArchitectureAnalysisPanel } from '@/components/architecture';
 import { ModernizationPlanPanel } from '@/components/planner';
 import { ProjectScorecardChart } from '@/components/charts';
 import { ProjectTimeline } from '@/components/projects';
-import { Button, EmptyState, EmptyAnalysisIllustration, PanelSkeleton, ErrorState, Progress, Skeleton } from '@/components/ui';
+import { Button, EmptyState, EmptyAnalysisIllustration, PanelSkeleton, ErrorState, Progress, Skeleton, DebugErrorBoundary } from '@/components/ui';
 import {
   projectService,
   technologyDetectionService,
@@ -207,15 +207,19 @@ export default function ProjectDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <ProjectSummaryCard project={project} technology={detection} isDetecting={isDetecting} />
+        <DebugErrorBoundary label="ProjectSummaryCard">
+          <ProjectSummaryCard project={project} technology={detection} isDetecting={isDetecting} />
+        </DebugErrorBoundary>
         <div className="rounded-lg border border-border bg-card p-6">
           <h3 className="font-semibold">Scorecard</h3>
           <div className="mt-2">
-            <ProjectScorecardChart
-              architectureScore={architecture?.architectureScore}
-              securityRiskScore={securityRiskScore}
-              performanceScore={performanceScore}
-            />
+            <DebugErrorBoundary label="ProjectScorecardChart">
+              <ProjectScorecardChart
+                architectureScore={architecture?.architectureScore}
+                securityRiskScore={securityRiskScore}
+                performanceScore={performanceScore}
+              />
+            </DebugErrorBoundary>
           </div>
         </div>
       </div>
@@ -223,7 +227,9 @@ export default function ProjectDetailPage() {
       <div className="rounded-lg border border-border bg-card p-6">
         <h3 className="font-semibold">Timeline</h3>
         <div className="mt-4">
-          <ProjectTimeline project={project} />
+          <DebugErrorBoundary label="ProjectTimeline">
+            <ProjectTimeline project={project} />
+          </DebugErrorBoundary>
         </div>
       </div>
 
@@ -246,7 +252,9 @@ export default function ProjectDetailPage() {
 
         <div className="mt-4">
           {detection ? (
-            <TechnologyDetectionPanel result={detection} />
+            <DebugErrorBoundary label="TechnologyDetectionPanel">
+              <TechnologyDetectionPanel result={detection} />
+            </DebugErrorBoundary>
           ) : isDetecting ? (
             <div className="flex flex-col gap-3">
               <Progress indeterminate />
@@ -287,7 +295,9 @@ export default function ProjectDetailPage() {
 
         <div className="mt-4">
           {architecture ? (
-            <ArchitectureAnalysisPanel result={architecture} />
+            <DebugErrorBoundary label="ArchitectureAnalysisPanel">
+              <ArchitectureAnalysisPanel result={architecture} />
+            </DebugErrorBoundary>
           ) : isAnalyzingArchitecture ? (
             <div className="flex flex-col gap-3">
               <Progress indeterminate />
@@ -328,7 +338,9 @@ export default function ProjectDetailPage() {
 
         <div className="mt-4">
           {plan ? (
-            <ModernizationPlanPanel plan={plan} />
+            <DebugErrorBoundary label="ModernizationPlanPanel">
+              <ModernizationPlanPanel plan={plan} />
+            </DebugErrorBoundary>
           ) : isPlanning ? (
             <div className="flex flex-col gap-3">
               <Progress indeterminate />
